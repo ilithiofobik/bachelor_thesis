@@ -214,10 +214,10 @@ impl Graph {
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_arc("vertex_0", "vertex_1");
-    /// let result = k2.write_to_json(String::from("k2.json"));
+    /// let result = k2.write_to_json("k2.json");
     /// assert!(result.is_ok());
     /// ```
-    pub fn write_to_json(&self, filename: String) -> serde_json::Result<()> {
+    pub fn write_to_json(&self, filename: &str) -> serde_json::Result<()> {
         let graph = json!({
             "num_of_nodes": self.num_of_nodes,
             "num_of_arcs": self.num_of_arcs,
@@ -227,47 +227,62 @@ impl Graph {
         );
         serde_json::to_writer(&File::create(filename).unwrap(), &graph)
     }
-
+   
     /// Reads a graph from a json file with given filename.
     /// # Examples 
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_arc("vertex_0", "vertex_1");
-    /// let result = k2.write_to_json(String::from("k2.json"));
-    /// let read = Graph::read_from_json(String::from("k2.json"));
-    /// assert!(result.is_ok());
-    /// assert_eq!("dupa", read.to_string());
+    /// let read = Graph::read_from_json("k2.json");
+    /// assert_eq!(2, read.get_num_of_nodes());
+    /// assert_eq!(1, read.get_num_of_arcs());
+    /// assert_eq!("vertex_0", read.idx_to_name(0).unwrap());
+    /// assert_eq!(1, read.name_to_idx("vertex_1").unwrap());
     /// ```
-    pub fn read_from_json(filename: String) -> Graph {
+    pub fn read_from_json(filename: &str) -> Graph {
         let data = std::fs::read_to_string(filename)
             .expect("Unable to read file");
         let json: serde_json::Value = serde_json::from_str(&data)
             .expect("JSON does not have correct format.");
+
         let num_of_nodes = json["num_of_nodes"].as_u64().unwrap() as usize;
+
         let num_of_arcs = json["num_of_arcs"].as_u64().unwrap() as usize;
-        let adjencency_list = json["names"].as_array().clone().unwrap() as Vec<Vec<usize>>;
 
+        let adjacency_list = json["adjacency_list"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|value| 
+                value
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|value| value.as_u64().unwrap() as usize)
+                .collect::<HashSet<usize>>() 
+            ).collect::<Vec<HashSet<usize>>>();
 
+        let names: Vec<String> = 
+            json["names"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|value| String::from(value.as_str().unwrap()))
+            .collect();
+
+        let mut name_to_idx_map = HashMap::new(); 
+        names
+            .iter()
+            .enumerate()
+            .for_each(|(idx, name)| { name_to_idx_map.insert(String::from(name), idx); });
 
         Graph {
             num_of_nodes,
             num_of_arcs,
-            adjacency_list: vec![HashSet::new(); names.len()],
+            adjacency_list,
             idx_to_name_map: names,
             name_to_idx_map
         }
-    }
-
-    let mut name_to_idx_map = HashMap::new(); 
-    names.iter().enumerate().for_each(|(idx, name)| { name_to_idx_map.insert(String::from(name), idx); });
-    Graph {
-        num_of_nodes: names.len(),
-        num_of_arcs: 0,
-        adjacency_list: vec![HashSet::new(); names.len()],
-        idx_to_name_map: names,
-        name_to_idx_map
-    }
-
-   
+    }  
 }
