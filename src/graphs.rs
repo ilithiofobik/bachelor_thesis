@@ -367,7 +367,7 @@ impl Graph {
                 color[idx] = Color::Black;
                 stack.push(idx);
                 while !stack.is_empty() {
-                    let current = stack.pop().unwrap();         
+                    let current = stack.pop().unwrap(); 
                     for neighbour in &self.from_vertices[current] {
                         if color[*neighbour] == Color::Gray {
                             color[*neighbour] = color[current].reverse();
