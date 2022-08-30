@@ -7,7 +7,7 @@ use scraper::{Html, Selector};
 /// A scraper for HTML documents finding links to other pages. 
 /// It contains an optional word that must be contained within the url address of found pages.
 pub struct Scraper {
-    client : reqwest::Client,
+    client : reqwest::blocking::Client,
     must_contain : Option<String>
 }
 
@@ -21,7 +21,7 @@ impl Scraper {
     /// ```
     pub fn new(must_contain: Option<String>) -> Scraper {
         Scraper {
-            client : reqwest::Client::new(),
+            client : reqwest::blocking::Client::new(),
             must_contain
         }
     }
@@ -31,14 +31,14 @@ impl Scraper {
     /// ```
     /// use bipartite::scraper::Scraper;
     /// let scraper = Scraper::new(None);
-    /// let links = tokio_test::block_on(scraper.scrape("https://www.rust-lang.org/en-US/"));
+    /// let links = scraper.scrape("https://www.rust-lang.org/en-US/");
     /// assert!(links.len() > 0);
     /// ```
-    pub async fn scrape(&self, url: &str) -> Vec<String> {
+    pub fn scrape(&self, url: &str) -> Vec<String> {
         let mut result = HashSet::new();
-        let resp = self.client.get(url).send().await;
+        let resp = self.client.get(url).send();
         if let Ok(resp) = resp {
-            let body = resp.text().await.unwrap();
+            let body = resp.text().unwrap();
             let document = Html::parse_document(&body);
             let selector = Selector::parse("a").unwrap();
             match self.must_contain {

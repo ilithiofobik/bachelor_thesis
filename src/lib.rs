@@ -10,3 +10,7 @@ pub mod graphs;
 /// 
 /// Module used to scrape a website for links to other pages.
 pub mod scraper;
+/// # crawler
+/// 
+/// Module used to crawl over a net of websites.
+pub mod crawler;
