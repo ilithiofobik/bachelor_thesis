@@ -45,51 +45,41 @@ impl Scraper {
             match self.must_contain {
                 Some(ref word) => {
                     for link in document.select(&selector) {
-                        let value = link.value().attr("href");
-                        match value {
-                            Some(href) => {
-                                if href.starts_with("http") && href.contains(word) {
-                                    let normalizer = normalizer::UrlNormalizer::new(href);
-                                    match normalizer {
-                                        Ok(normalizer) => {
-                                            let normalized = normalizer.normalize(None);
-                                            match normalized {
-                                                Ok(normalized) => {
-                                                    result.insert(normalized.to_owned());
-                                                }
-                                                Err(_) => {}
-                                            }
+                        let href = link.value().attr("href").unwrap_or_default();
+                        if href.starts_with("http") && href.contains(word) {
+                            let normalizer = normalizer::UrlNormalizer::new(href);
+                            match normalizer {
+                                Ok(normalizer) => {
+                                    let normalized = normalizer.normalize(None);
+                                    match normalized {
+                                        Ok(normalized) => {
+                                            result.insert(normalized.to_owned());
                                         }
                                         Err(_) => {}
                                     }
                                 }
+                                Err(_) => {}
                             }
-                            None => (),
                         }
                     }
                 }
                 None => {
                     for link in document.select(&selector) {
-                        let value = link.value().attr("href");
-                        match value {
-                            Some(href) => {
-                                if href.starts_with("http") {
-                                    let normalizer = normalizer::UrlNormalizer::new(href);
-                                    match normalizer {
-                                        Ok(normalizer) => {
-                                            let normalized = normalizer.normalize(None);
-                                            match normalized {
-                                                Ok(normalized) => {
-                                                    result.insert(normalized.to_owned());
-                                                }
-                                                Err(_) => {}
-                                            }
+                        let href = link.value().attr("href").unwrap_or_default();
+                        if href.starts_with("http") {
+                            let normalizer = normalizer::UrlNormalizer::new(href);
+                            match normalizer {
+                                Ok(normalizer) => {
+                                    let normalized = normalizer.normalize(None);
+                                    match normalized {
+                                        Ok(normalized) => {
+                                            result.insert(normalized.to_owned());
                                         }
                                         Err(_) => {}
                                     }
                                 }
+                                Err(_) => {}
                             }
-                            None => (),
                         }
                     }
                 }
