@@ -24,6 +24,7 @@ impl Color {
     }
 }
 
+#[derive(Clone)]
 pub struct Graph {
     num_of_nodes: usize,
     num_of_arcs: usize,
