@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs::File;
 
-/// Enum used to color graph's nodes.
+/// Enum used to color graph's vertices.
 #[derive(Clone, PartialEq)]
 enum Color {
     Black,
@@ -26,8 +26,8 @@ impl Color {
 
 #[derive(Clone)]
 pub struct Graph {
-    num_of_nodes: usize,
-    num_of_arcs: usize,
+    num_of_vertices: usize,
+    num_of_edges: usize,
     from_vertices: Vec<HashSet<usize>>,
     to_vertices: Vec<HashSet<usize>>,
     idx_to_name_map: Vec<String>,
@@ -36,37 +36,37 @@ pub struct Graph {
 
 #[derive(Serialize, Deserialize)]
 struct GraphJson {
-    num_of_nodes: usize,
-    num_of_arcs: usize,
+    num_of_vertices: usize,
+    num_of_edges: usize,
     to_vertices: Vec<Vec<usize>>,
     names: Vec<String>,
 }
 
 impl Graph {    
-    /// Returns number of nodes.
+    /// Returns number of vertices.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// assert_eq!(2, e2.get_num_of_nodes());
+    /// assert_eq!(2, e2.get_num_of_vertices());
     /// ```
-    pub fn get_num_of_nodes(&self) -> usize {
-        self.num_of_nodes
+    pub fn get_num_of_vertices(&self) -> usize {
+        self.num_of_vertices
     }
 
-    /// Returns number of arcs.
+    /// Returns number of edges.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// e2.add_arc_idx(0, 1);
-    /// assert_eq!(1, e2.get_num_of_arcs());
+    /// e2.add_edge_idx(0, 1);
+    /// assert_eq!(1, e2.get_num_of_edges());
     /// ```
-    pub fn get_num_of_arcs(&self) -> usize {
-        self.num_of_arcs
+    pub fn get_num_of_edges(&self) -> usize {
+        self.num_of_edges
     }
 
-    /// Returns the name of the node with given index.
+    /// Returns the name of the vertex with given index.
     /// The return type is Result which is Ok if the index exists in the graph and Err otherwise.
     /// # Examples
     /// ```
@@ -75,7 +75,7 @@ impl Graph {
     /// assert_eq!("vertex_0", e1.idx_to_name(0).unwrap());
     /// ```
     pub fn idx_to_name(&self, idx: usize) -> Result<String, &str> {
-        if idx < self.num_of_nodes {
+        if idx < self.num_of_vertices {
             let name = self.idx_to_name_map[idx].clone();
             Ok(name)
         } else {
@@ -83,7 +83,7 @@ impl Graph {
         }
     }
 
-    /// Returns the name of the node with given index.
+    /// Returns the name of the vertex with given index.
     /// The return type is Result which is Ok if the index exists in the graph and Err otherwise.
     /// # Examples
     /// ```
@@ -96,21 +96,21 @@ impl Graph {
             let idx = self.name_to_idx_map[name];
             Ok(idx)
         } else {
-            Err("There is no node with such name.")
+            Err("There is no vertex with such name.")
         }
     }
 
-    /// Creates an empty graph. The graph has 0 nodes, empty adjencency list and empty mapping.
+    /// Creates an empty graph. The graph has 0 vertices, empty adjencency list and empty mapping.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let empty = Graph::empty();
-    /// assert_eq!(0, empty.get_num_of_nodes());
+    /// assert_eq!(0, empty.get_num_of_vertices());
     /// ```
     pub fn empty() -> Graph {
         Graph {
-            num_of_nodes: 0,
-            num_of_arcs: 0,
+            num_of_vertices: 0,
+            num_of_edges: 0,
             from_vertices: vec![],
             to_vertices: vec![],
             idx_to_name_map: vec![],
@@ -118,7 +118,7 @@ impl Graph {
         }
     }
 
-    /// Creates a random graph with given number of nodes.
+    /// Creates a random graph with given number of vertices.
     /// Each edge has a probability of ppb to be present.
     /// i-th vertex is named "vertex_i".
     /// # Examples
@@ -128,33 +128,33 @@ impl Graph {
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
     /// ```
-    pub fn random(num_of_nodes: usize, ppb: f64) -> Graph {
+    pub fn random(num_of_vertices: usize, ppb: f64) -> Graph {
         let mut graph = Graph::empty();
-        for i in 0..num_of_nodes {
+        for i in 0..num_of_vertices {
             graph.add_vertex(&format!("vertex_{}", i));
         }
         let mut rand_thread = rand::thread_rng();
-        for from in 0..num_of_nodes {
+        for from in 0..num_of_vertices {
             for to in 0..from {
                 if rand_thread.gen_range(0.0..1.0) < ppb {
-                    graph.add_arc_idx(from, to);
+                    graph.add_edge_idx(from, to);
                 }
             }
-            for to in from + 1..num_of_nodes {
+            for to in from + 1..num_of_vertices {
                 if rand_thread.gen_range(0.0..1.0) < ppb {
-                    graph.add_arc_idx(from, to);
+                    graph.add_edge_idx(from, to);
                 }
             }
         }
         graph
     }
 
-    /// Creates a graph with no arcs based on a vector of nodes names.
+    /// Creates a graph with no edges based on a vector of vertices names.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// assert_eq!(2, e2.get_num_of_nodes());
+    /// assert_eq!(2, e2.get_num_of_vertices());
     /// assert_eq!(0, e2.name_to_idx("vertex_0").unwrap());
     /// assert_eq!("vertex_1", e2.idx_to_name(1).unwrap());
     /// ```
@@ -164,8 +164,8 @@ impl Graph {
             name_to_idx_map.insert(String::from(name), idx);
         });
         Graph {
-            num_of_nodes: names.len(),
-            num_of_arcs: 0,
+            num_of_vertices: names.len(),
+            num_of_edges: 0,
             from_vertices: vec![HashSet::new(); names.len()],
             to_vertices: vec![HashSet::new(); names.len()],
             idx_to_name_map: names,
@@ -173,7 +173,7 @@ impl Graph {
         }
     }
 
-    /// Adds a new node with given name.
+    /// Adds a new vertex with given name.
     /// If the name already exists then it is not added.
     /// # Examples
     /// ```
@@ -181,7 +181,7 @@ impl Graph {
     /// let mut k_one = Graph::empty();
     /// k_one.add_vertex("vertex_0");
     /// k_one.add_vertex("vertex_0");
-    /// assert_eq!(1, k_one.get_num_of_nodes());
+    /// assert_eq!(1, k_one.get_num_of_vertices());
     /// assert_eq!("vertex_0", k_one.idx_to_name(0).unwrap());
     /// assert_eq!(0, k_one.name_to_idx("vertex_0").unwrap());
     /// ```
@@ -190,64 +190,64 @@ impl Graph {
             self.from_vertices.push(HashSet::new());
             self.to_vertices.push(HashSet::new());
             self.name_to_idx_map
-                .insert(String::from(name), self.num_of_nodes);
+                .insert(String::from(name), self.num_of_vertices);
             self.idx_to_name_map.push(String::from(name));
-            self.num_of_nodes += 1;
+            self.num_of_vertices += 1;
         }
     }
 
-    /// Returns an iterator on all nodes indices.
+    /// Returns an iterator on all vertices indices.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// assert_eq!((0..2), e2.nodes());
+    /// assert_eq!((0..2), e2.vertices());
     /// ```
-    pub fn nodes(&self) -> std::ops::Range<usize> {
-        0..self.num_of_nodes
+    pub fn vertices(&self) -> std::ops::Range<usize> {
+        0..self.num_of_vertices
     }
 
-    /// Adds an arc between two nodes based on their indices.
+    /// Adds an edge between two vertices based on their indices.
     /// Returns boolean value - if the adding was successful.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// k2.add_arc_idx(0, 1);
+    /// k2.add_edge_idx(0, 1);
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
     /// ```
-    pub fn add_arc_idx(&mut self, from: usize, to: usize) -> bool {
-        if from < self.num_of_nodes && to < self.num_of_nodes {
+    pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
+        if from < self.num_of_vertices && to < self.num_of_vertices {
             self.from_vertices[to].insert(from);
             self.to_vertices[from].insert(to);
-            self.num_of_arcs += 1;
+            self.num_of_edges += 1;
             true
         } else {
             false
         }
     }
 
-    /// Adds an arc between two nodes based on their names.
+    /// Adds an edge between two vertices based on their names.
     /// Returns boolean value - if the adding was successful.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// k2.add_arc("vertex_0", "vertex_1");
+    /// k2.add_edge("vertex_0", "vertex_1");
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
     /// ```
-    pub fn add_arc(&mut self, from: &str, to: &str) -> bool {
+    pub fn add_edge(&mut self, from: &str, to: &str) -> bool {
         if self.name_to_idx_map.contains_key(from) && self.name_to_idx_map.contains_key(to) {
             self.from_vertices[self.name_to_idx_map[to]].insert(self.name_to_idx_map[from]);
             self.to_vertices[self.name_to_idx_map[from]].insert(self.name_to_idx_map[to]);
-            self.num_of_arcs += 1;
+            self.num_of_edges += 1;
             true
         } else {
             false
         }
     }
 
-    /// Lists all neighbours of a given node based on its index.
+    /// Lists all neighbours of a given vertex based on its index.
     /// The return set is the set of indices.
     /// If a given index does not exist in the graph it returns an Err value.
     ///
@@ -256,11 +256,11 @@ impl Graph {
     /// use bipartite::graphs::Graph;
     /// use std::collections::HashSet;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// k2.add_arc("vertex_0", "vertex_1");
+    /// k2.add_edge("vertex_0", "vertex_1");
     /// assert_eq!(k2.neighbours_idx(0), Ok(HashSet::from([1])));
     /// ```
     pub fn neighbours_idx(&self, idx: usize) -> Result<HashSet<usize>, &str> {
-        if idx >= self.num_of_nodes {
+        if idx >= self.num_of_vertices {
             Err("Index does not exist in the graph.")
         } else {
             Ok(self.to_vertices[idx].clone())
@@ -272,14 +272,14 @@ impl Graph {
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// k2.add_arc("vertex_0", "vertex_1");
+    /// k2.add_edge("vertex_0", "vertex_1");
     /// let result = k2.write_to_json("k2.json");
     /// assert!(result.is_ok());
     /// ```
     pub fn write_to_json(&self, filename: &str) -> serde_json::Result<()> {
         let graph = json!({
-            "num_of_nodes": self.num_of_nodes,
-            "num_of_arcs": self.num_of_arcs,
+            "num_of_vertices": self.num_of_vertices,
+            "num_of_edges": self.num_of_edges,
             "to_vertices": self.to_vertices,
             "names": self.idx_to_name_map
         }
@@ -292,10 +292,10 @@ impl Graph {
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
-    /// k2.add_arc("vertex_0", "vertex_1");
+    /// k2.add_edge("vertex_0", "vertex_1");
     /// let read = Graph::read_from_json("k2.json");
-    /// assert_eq!(2, read.get_num_of_nodes());
-    /// assert_eq!(1, read.get_num_of_arcs());
+    /// assert_eq!(2, read.get_num_of_vertices());
+    /// assert_eq!(1, read.get_num_of_edges());
     /// assert_eq!("vertex_0", read.idx_to_name(0).unwrap());
     /// assert_eq!(1, read.name_to_idx("vertex_1").unwrap());
     /// ```
@@ -304,9 +304,9 @@ impl Graph {
         let json: serde_json::Value =
             serde_json::from_str(&data).expect("JSON does not have correct format.");
 
-        let num_of_nodes = json["num_of_nodes"].as_u64().unwrap() as usize;
+        let num_of_vertices = json["num_of_vertices"].as_u64().unwrap() as usize;
 
-        let num_of_arcs = json["num_of_arcs"].as_u64().unwrap() as usize;
+        let num_of_edges = json["num_of_edges"].as_u64().unwrap() as usize;
 
         let to_vertices = json["to_vertices"]
             .as_array()
@@ -322,7 +322,7 @@ impl Graph {
             })
             .collect::<Vec<HashSet<usize>>>();
 
-        let mut from_vertices = vec![HashSet::new(); num_of_nodes];
+        let mut from_vertices = vec![HashSet::new(); num_of_vertices];
         to_vertices.iter().enumerate().for_each(|(idx, neighbours)| {
             neighbours.iter().for_each(|neighbour| {
                 from_vertices[*neighbour].insert(idx);
@@ -342,8 +342,8 @@ impl Graph {
         });
 
         Graph {
-            num_of_nodes,
-            num_of_arcs,
+            num_of_vertices,
+            num_of_edges,
             from_vertices,
             to_vertices,
             idx_to_name_map: names,
@@ -361,9 +361,9 @@ impl Graph {
     /// assert!(!k3.is_bipartite());
     /// ```
     pub fn is_bipartite(&self) -> bool {
-        let mut color = vec![Color::Gray; self.num_of_nodes];
+        let mut color = vec![Color::Gray; self.num_of_vertices];
         let mut stack = Vec::new();
-        for idx in 0..self.num_of_nodes {
+        for idx in 0..self.num_of_vertices {
             if color[idx] == Color::Gray {
                 color[idx] = Color::Black;
                 stack.push(idx);

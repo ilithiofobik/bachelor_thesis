@@ -47,18 +47,10 @@ impl Scraper {
                     for link in document.select(&selector) {
                         let href = link.value().attr("href").unwrap_or_default();
                         if href.starts_with("http") && href.contains(word) {
-                            let normalizer = normalizer::UrlNormalizer::new(href);
-                            match normalizer {
-                                Ok(normalizer) => {
-                                    let normalized = normalizer.normalize(None);
-                                    match normalized {
-                                        Ok(normalized) => {
-                                            result.insert(normalized.to_owned());
-                                        }
-                                        Err(_) => {}
-                                    }
+                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
+                                if let Ok(normalized) = normalizer.normalize(None) {
+                                    result.insert(normalized.to_owned());
                                 }
-                                Err(_) => {}
                             }
                         }
                     }
@@ -67,18 +59,10 @@ impl Scraper {
                     for link in document.select(&selector) {
                         let href = link.value().attr("href").unwrap_or_default();
                         if href.starts_with("http") {
-                            let normalizer = normalizer::UrlNormalizer::new(href);
-                            match normalizer {
-                                Ok(normalizer) => {
-                                    let normalized = normalizer.normalize(None);
-                                    match normalized {
-                                        Ok(normalized) => {
-                                            result.insert(normalized.to_owned());
-                                        }
-                                        Err(_) => {}
-                                    }
+                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href){
+                                if let Ok(normalized) = normalizer.normalize(None) {
+                                    result.insert(normalized.to_owned());
                                 }
-                                Err(_) => {}
                             }
                         }
                     }
