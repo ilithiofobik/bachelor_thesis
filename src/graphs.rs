@@ -207,6 +207,18 @@ impl Graph {
         0..self.num_of_vertices
     }
 
+    /// Returns an iterator on all vertices names.
+    /// # Examples
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
+    /// assert!(e1.contains_vertix("vertex_0"));
+    /// assert!(!e1.contains_vertix("vertex_1"));
+    /// ```
+    pub fn contains_vertix(&self, name: &str) -> bool {
+        self.name_to_idx_map.contains_key(name)
+    }
+
     /// Adds an edge between two vertices based on their indices.
     /// Returns boolean value - if the adding was successful.
     /// # Examples

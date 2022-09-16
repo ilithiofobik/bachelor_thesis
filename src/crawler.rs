@@ -1,9 +1,13 @@
-use core::num;
 use std::collections::VecDeque;
-use std::sync::{Arc, RwLock}; //mpsc to be added
+use std::sync::{Arc, RwLock, mpsc};
 
 use super::graphs::Graph;
 use super::scraper::Scraper;
+
+enum Index {
+    StrIndex(String),
+    NumIndex(usize),
+}
 
 pub struct Crawler {
     root: String,
@@ -49,18 +53,57 @@ impl Crawler {
             (0..num_of_threads).into_iter().for_each(|_| scrapers.push(Arc::new(Scraper::new(self.must_contain.clone()))));
             scrapers
         }; // scrapers are used but not changed     
+        
+        let mut curr_num_of_threads = 0;
+        while curr_num_of_threads > 0 {
+            let mut threads = Vec::with_capacity(curr_num_of_threads);
+            let (tx, rx) = mpsc::channel();
 
-        let curr_num_of_threads = std::cmp::min(num_of_threads, nodes_to_scan.read().unwrap().len());
-        let mut threads = Vec::with_capacity(curr_num_of_threads);
-        for t in 0..curr_num_of_threads {
-            let scraper = Arc::clone(&scrapers[t]);
-            let graph = Arc::clone(&graph);
-            let nodes_to_scan = Arc::clone(&nodes_to_scan);
-            let max_depth = Arc::clone(&max_depth);
-            threads.push(std::thread::spawn(move || {
-                let graph = graph.read().unwrap();
-                let node_to_scan = nodes_to_scan.read().unwrap().get(t);
-            }));
+            for t in 0..curr_num_of_threads {
+                let scraper = Arc::clone(&scrapers[t]);
+                let graph = Arc::clone(&graph);
+                let nodes_to_scan_clone = Arc::clone(&nodes_to_scan);
+                let max_depth = Arc::clone(&max_depth);
+                let tx = tx.clone();
+
+                threads.push(std::thread::spawn(move || {
+                    let graph = graph.read().unwrap();
+                    let (depth, node_id) = *nodes_to_scan_clone.read().unwrap().get(curr_num_of_threads).unwrap();
+                    let root_node_name = graph.idx_to_name(node_id).unwrap();
+                    let links = scraper.scrape(&root_node_name);
+                    let links = 
+                        if depth == *max_depth {
+                            links.into_iter().filter(|link| graph.contains_vertix(link)).collect()
+                        } else {
+                            links
+                        };
+                    let links = links.into_iter().map(|link| {
+                        let link = link;
+                        let index = graph.name_to_idx(&link);
+                        match index {
+                            Ok(idx) => Index::NumIndex(idx),
+                            Err(_) => Index::StrIndex(link)
+                        }
+                    }).collect::<Vec<Index>>();
+
+                    tx.send((root_node_name, depth, links)).unwrap();
+                }));
+            }
+
+            for _ in 0..curr_num_of_threads {
+                let _new_indiviual = rx.recv().unwrap();
+               // population.push(new_indiviual);
+            }
+
+            for thread in threads {
+                thread.join().expect("The thread creating or execution failed!");
+            }
+            // deleting scanned nodes
+            let mut nodes_to_scan_write = nodes_to_scan.write().unwrap();
+            (0..curr_num_of_threads).into_iter().for_each(|_| {
+                nodes_to_scan_write.pop_front();
+            });
+            curr_num_of_threads = std::cmp::min(num_of_threads, nodes_to_scan_write.len());
         }
 
         let graph_r = graph.read().unwrap();

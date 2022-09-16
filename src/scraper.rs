@@ -35,7 +35,7 @@ impl Scraper {
     /// let links = scraper.scrape("https://pwr.edu.pl/");
     /// assert!(links.len() > 0);
     /// ```
-    pub fn scrape(&self, url: &str) -> Vec<String> {
+    pub fn scrape(&self, url: &str) -> HashSet<String> {
         let mut result = HashSet::new();
         let resp = self.client.get(url).send();
         if let Ok(resp) = resp {
@@ -69,6 +69,6 @@ impl Scraper {
                 }
             }
         }
-        result.into_iter().collect()
+        result
     }
 }
