@@ -34,6 +34,9 @@ impl Scraper {
     /// let scraper = Scraper::new(None);
     /// let links = scraper.scrape("https://pwr.edu.pl/");
     /// assert!(links.len() > 0);
+    /// for link in &links {
+    ///     assert!(link.starts_with("https://"));
+    /// }
     /// ```
     pub fn scrape(&self, url: &str) -> HashSet<String> {
         let mut result = HashSet::new();
@@ -49,7 +52,7 @@ impl Scraper {
                         if href.starts_with("http") && href.contains(word) {
                             if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
                                 if let Ok(normalized) = normalizer.normalize(None) {
-                                    result.insert(normalized.to_owned());
+                                    result.insert(normalized.to_owned().replace("http:", "https:"));
                                 }
                             }
                         }
@@ -61,7 +64,7 @@ impl Scraper {
                         if href.starts_with("http") {
                             if let Ok(normalizer) = normalizer::UrlNormalizer::new(href){
                                 if let Ok(normalized) = normalizer.normalize(None) {
-                                    result.insert(normalized.to_owned());
+                                    result.insert(normalized.to_owned().replace("http:", "https:"));
                                 }
                             }
                         }

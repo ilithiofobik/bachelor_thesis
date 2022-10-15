@@ -16,7 +16,7 @@ pub struct Crawler {
 }
 
 impl Crawler {
-    /// Create a new parser.
+    /// Create a new crawler.
     /// ```
     /// use bipartite::crawler::Crawler;
     /// let parser = Crawler::new("<html><body><p>Hello</p></body></html>".to_owned(), 1, None);
@@ -32,9 +32,14 @@ impl Crawler {
     /// Crawl the web based on given url and max_depth.
     /// ```
     /// use bipartite::crawler::Crawler;
-    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 3, Some("pwr.edu".to_owned()));
+    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, Some("pwr.edu".to_owned()));
     /// let links = crawler.crawl();
+    /// links.write_to_json("testing.json").unwrap(); // to be deleted
     /// assert_eq!(links.idx_to_name(0).unwrap(), "https://pwr.edu.pl/");
+    /// for idx in links.vertices().skip(1) {
+    ///     assert!(links.idx_to_name(idx).unwrap().contains("pwr.edu"));
+    ///     assert_ne!(links.idx_to_name(idx).unwrap(), "https://pwr.edu.pl/");
+    /// }
     /// ```
     pub fn crawl(&self) -> Graph {
         let num_of_threads = num_cpus::get_physical();
@@ -54,13 +59,13 @@ impl Crawler {
             scrapers
         }; // scrapers are used but not changed     
         
-        let mut curr_num_of_threads = 0;
+        let mut curr_num_of_threads = 1;
         while curr_num_of_threads > 0 {
             let mut threads = Vec::with_capacity(curr_num_of_threads);
             let (tx, rx) = mpsc::channel();
 
-            for t in 0..curr_num_of_threads {
-                let scraper = Arc::clone(&scrapers[t]);
+            for (queue_idx, scraper_arc) in scrapers.iter().enumerate().take(curr_num_of_threads) {
+                let scraper = Arc::clone(scraper_arc);
                 let graph = Arc::clone(&graph);
                 let nodes_to_scan_clone = Arc::clone(&nodes_to_scan);
                 let max_depth = Arc::clone(&max_depth);
@@ -68,7 +73,7 @@ impl Crawler {
 
                 threads.push(std::thread::spawn(move || {
                     let graph = graph.read().unwrap();
-                    let (depth, node_id) = *nodes_to_scan_clone.read().unwrap().get(curr_num_of_threads).unwrap();
+                    let (depth, node_id) = *nodes_to_scan_clone.read().unwrap().get(queue_idx).unwrap();
                     let root_node_name = graph.idx_to_name(node_id).unwrap();
                     let links = scraper.scrape(&root_node_name);
                     let links = 
@@ -86,23 +91,49 @@ impl Crawler {
                         }
                     }).collect::<Vec<Index>>();
 
-                    tx.send((root_node_name, depth, links)).unwrap();
+                    tx.send((queue_idx, links)).unwrap();
                 }));
-            }
-
-            for _ in 0..curr_num_of_threads {
-                let _new_indiviual = rx.recv().unwrap();
-               // population.push(new_indiviual);
             }
 
             for thread in threads {
                 thread.join().expect("The thread creating or execution failed!");
             }
-            // deleting scanned nodes
+
+            let mut graph_write = graph.write().unwrap();
             let mut nodes_to_scan_write = nodes_to_scan.write().unwrap();
+
+            for _ in 0..curr_num_of_threads {
+                let (queue_idx, links) = rx.recv().unwrap();
+                let (depth, node_id) = *nodes_to_scan_write.get(queue_idx).unwrap();
+                let root_node_name = graph_write.idx_to_name(node_id).unwrap();
+                for link in links {
+                    match link {
+                        Index::StrIndex(link) => {
+                            let graph_idx = graph_write.name_to_idx(&link);
+                            match graph_idx {
+                                Ok(link_id) => {
+                                    graph_write.add_edge_idx(node_id, link_id);
+                                },
+                                Err(_) => {
+                                    graph_write.add_vertex(&link);
+                                    let link_id = graph_write.get_num_of_vertices() - 1;
+                                    graph_write.add_edge(&root_node_name, &link);
+                                    nodes_to_scan_write.push_back((depth + 1, link_id));
+                                }
+                            }
+                        },
+                        Index::NumIndex(link_id) => {
+                            graph_write.add_edge_idx(node_id, link_id);
+                        }
+                    }
+                }
+            }
+
+            // deleting scanned nodes
             (0..curr_num_of_threads).into_iter().for_each(|_| {
                 nodes_to_scan_write.pop_front();
             });
+
             curr_num_of_threads = std::cmp::min(num_of_threads, nodes_to_scan_write.len());
         }
 
