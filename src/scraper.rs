@@ -28,6 +28,7 @@ impl Scraper {
     }
 
     /// Scrapes the given url for links to other pages while normalizing their urls.
+    /// If the connection to the url fails, then an empty HashSet is returned.
     /// # Examples
     /// ```
     /// use bipartite::scraper::Scraper;
@@ -52,7 +53,11 @@ impl Scraper {
                         if href.starts_with("http") && href.contains(word) {
                             if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
                                 if let Ok(normalized) = normalizer.normalize(None) {
-                                    result.insert(normalized.to_owned().replace("http:", "https:"));
+                                    let mut normalized = normalized.to_owned();
+                                    if normalized.chars().nth(4) == Some(':') {
+                                        normalized.insert(4, 's');
+                                    }
+                                    result.insert(normalized);
                                 }
                             }
                         }
@@ -62,12 +67,16 @@ impl Scraper {
                     for link in document.select(&selector) {
                         let href = link.value().attr("href").unwrap_or_default();
                         if href.starts_with("http") {
-                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href){
+                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
                                 if let Ok(normalized) = normalizer.normalize(None) {
-                                    result.insert(normalized.to_owned().replace("http:", "https:"));
+                                    let mut normalized = normalized.to_owned();
+                                    if normalized.chars().nth(4) == Some(':') {
+                                        normalized.insert(4, 's');
+                                    }
+                                    result.insert(normalized);
                                 }
                             }
-                        }
+                        } 
                     }
                 }
             }

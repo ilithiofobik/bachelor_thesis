@@ -1,20 +1,20 @@
 pub struct Subsets {
-    set_size: usize,
-    subset_size: usize,
+    n: usize,
+    k: usize,
     curr_subset: Vec<usize>,
 }
 
 impl Subsets {
-    pub fn new(set_size: usize, subset_size: usize) -> Subsets {
+    pub fn new(n: usize, k: usize) -> Subsets {
         Subsets {
-            set_size,
-            subset_size,
-            curr_subset: (0..subset_size).collect(),
+            n,
+            k,
+            curr_subset: (0..k).collect(),
         }
     }
 }
 
-/// Iterates over all k-subsets of {0,...,k - 1}.
+/// Iterates over all k-subsets of {0,...,n - 1}.
 /// # Examples
 /// ```
 /// use bipartite::combinatorics::Subsets;
@@ -29,23 +29,23 @@ impl Iterator for Subsets {
     type Item = Vec<usize>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.subset_size == 0 {
-            self.subset_size = self.set_size + 1;
+        if self.k == 0 {
+            self.k = self.n + 1;
             Some(Vec::new())
-        } else if self.subset_size > self.set_size
-            || self.curr_subset[0] + self.subset_size >= self.set_size + 1
+        } else if self.k > self.n
+            || self.curr_subset[0] + self.k >= self.n + 1
         {
             None
         } else {
             let result_subset = self.curr_subset.clone();
 
-            let mut idx = self.subset_size - 1;
+            let mut idx = self.k - 1;
 
-            while idx > 0 && self.curr_subset[idx] == self.set_size - self.subset_size + idx {
+            while idx > 0 && self.curr_subset[idx] == self.n - self.k + idx {
                 idx -= 1;
             }
             self.curr_subset[idx] += 1;
-            while idx + 1 < self.subset_size {
+            while idx + 1 < self.k {
                 self.curr_subset[idx + 1] = self.curr_subset[idx] + 1;
                 idx += 1;
             }
