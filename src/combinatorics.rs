@@ -1,56 +1,91 @@
-pub struct Subsets {
+/// Returns the value of binomial n choose k.
+/// # Examples
+/// ```
+/// use bipartite::combinatorics::binomial;
+/// assert_eq!(1, binomial(10, 0));
+/// assert_eq!(252, binomial(10, 5));
+/// assert_eq!(0, binomial(10, 11));
+pub fn binomial(n: usize, k: usize) -> usize {
+    match (n, k) {
+        (_, 0) => 1,
+        (0, _) => 0,
+        (_, _) => (n * binomial(n - 1, k - 1)) / k,
+    }
+}
+pub struct GraySubsets {
     n: usize,
-    k: usize,
-    curr_subset: Vec<usize>,
+    t: isize,
+    i: usize,
+    tau: Vec<usize>,
+    pub g: Vec<usize>,
 }
 
-impl Subsets {
-    pub fn new(n: usize, k: usize) -> Subsets {
-        Subsets {
+impl GraySubsets {
+    pub fn new(n: usize, k: usize) -> GraySubsets {
+        let mut tau: Vec<usize> = (0..n + 1).map(|x| x + 1).collect();
+        tau[0] = k;
+        GraySubsets {
             n,
-            k,
-            curr_subset: (0..k).collect(),
+            t: k as isize - 1,
+            i: 0,
+            tau,
+            g: (0..n + 1).map(|x| if x < k { 1 } else { 0 }).collect(),
         }
+    }
+
+    pub fn init(&self) -> Vec<usize> {
+        self.g.clone()
     }
 }
 
-/// Iterates over all k-subsets of {0,...,n - 1}.
-/// # Examples
-/// ```
-/// use bipartite::combinatorics::Subsets;
-/// let ten_choose_zero = Subsets::new(10, 0);
-/// let ten_choose_five = Subsets::new(10, 5);
-/// let ten_choose_eleven = Subsets::new(10, 11);
-/// assert_eq!(1, ten_choose_zero.count());
-/// assert_eq!(252, ten_choose_five.count());
-/// assert_eq!(0, ten_choose_eleven.count());
-/// ```
-impl Iterator for Subsets {
-    type Item = Vec<usize>;
+impl Iterator for GraySubsets {
+    type Item = [usize; 2];
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.k == 0 {
-            self.k = self.n + 1;
-            Some(Vec::new())
-        } else if self.k > self.n
-            || self.curr_subset[0] + self.k >= self.n + 1
-        {
-            None
-        } else {
-            let result_subset = self.curr_subset.clone();
+        let mut result = [0, 0];
+        loop {
+            self.i = self.tau[0];
+            self.tau[0] = self.tau[self.i];
+            self.tau[self.i] = self.i + 1;
 
-            let mut idx = self.k - 1;
-
-            while idx > 0 && self.curr_subset[idx] == self.n - self.k + idx {
-                idx -= 1;
+            if self.g[self.i] == 1 {
+                if self.t != -1 {
+                    self.g[self.t as usize] = 1 - self.g[self.t as usize];
+                    result[self.g[self.t as usize]] = self.t as usize;
+                } else {
+                    self.g[self.i - 1] = 1 - self.g[self.i - 1];
+                    result[self.g[self.i - 1]] = self.i - 1;
+                }
+                self.t += 1;
+            } else {
+                if self.t != 0 {
+                    self.g[self.t as usize - 1] = 1 - self.g[self.t as usize - 1];
+                    result[self.g[self.t as usize - 1]] = self.t as usize - 1;
+                } else {
+                    self.g[self.i - 1] = 1 - self.g[self.i - 1];
+                    result[self.g[self.i - 1]] = self.i - 1;
+                }
+                self.t -= 1;
             }
-            self.curr_subset[idx] += 1;
-            while idx + 1 < self.k {
-                self.curr_subset[idx + 1] = self.curr_subset[idx] + 1;
-                idx += 1;
-            }
 
-            Some(result_subset)
+            self.g[self.i] = 1 - self.g[self.i];
+            result[self.g[self.i]] = self.i;
+
+            if self.t as usize == self.i - 1 || self.t == -1 {
+                self.t += 1;
+            } else {
+                self.t = self.t - self.g[self.i - 1] as isize;
+                self.tau[self.i - 1] = self.tau[0];
+
+                if self.t == -1 {
+                    self.tau[0] = self.i - 1;
+                } else {
+                    self.tau[0] = self.t as usize + 1;
+                }
+            }
+            if self.i == self.n { break }
+            return Some(result)
         }
+        None
     }
 }

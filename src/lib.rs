@@ -14,3 +14,7 @@ pub mod scraper;
 /// 
 /// Module used to crawl over a net of websites.
 pub mod crawler;
+/// # bipartite
+/// 
+/// Module implementing algorithms finding large bipartite subgraphs.
+pub mod bipartite;
