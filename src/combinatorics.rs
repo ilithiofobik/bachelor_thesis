@@ -14,7 +14,7 @@ pub fn binomial(n: usize, k: usize) -> usize {
 }
 pub struct GraySubsets {
     n: usize,
-    t: isize,
+    t: usize,
     i: usize,
     tau: Vec<usize>,
     pub g: Vec<usize>,
@@ -26,7 +26,7 @@ impl GraySubsets {
         tau[0] = if k > 0 { k } else { n + 1 };
         GraySubsets {
             n,
-            t: k as isize - 1,
+            t: k,
             i: 0,
             tau,
             g: (0..n + 1).map(|x| if x < k { 1 } else { 0 }).collect(),
@@ -49,18 +49,18 @@ impl Iterator for GraySubsets {
             self.tau[self.i] = self.i + 1;
 
             if self.g[self.i] == 1 {
-                if self.t != -1 {
-                    self.g[self.t as usize] = 1 - self.g[self.t as usize];
-                    result[self.g[self.t as usize]] = self.t as usize;
+                if self.t != 0 {
+                    self.g[self.t - 1] = 1 - self.g[self.t - 1];
+                    result[self.g[self.t - 1]] = self.t - 1;
                 } else {
                     self.g[self.i - 1] = 1 - self.g[self.i - 1];
                     result[self.g[self.i - 1]] = self.i - 1;
                 }
                 self.t += 1;
             } else {
-                if self.t != 0 {
-                    self.g[self.t as usize - 1] = 1 - self.g[self.t as usize - 1];
-                    result[self.g[self.t as usize - 1]] = self.t as usize - 1;
+                if self.t != 1 {
+                    self.g[self.t - 2] = 1 - self.g[self.t - 2];
+                    result[self.g[self.t - 2]] = self.t - 2;
                 } else {
                     self.g[self.i - 1] = 1 - self.g[self.i - 1];
                     result[self.g[self.i - 1]] = self.i - 1;
@@ -71,16 +71,16 @@ impl Iterator for GraySubsets {
             self.g[self.i] = 1 - self.g[self.i];
             result[self.g[self.i]] = self.i;
 
-            if self.t as usize == self.i - 1 || self.t == -1 {
+            if self.t  == self.i || self.t == 0 {
                 self.t += 1;
             } else {
-                self.t -= self.g[self.i - 1] as isize;
+                self.t -= self.g[self.i - 1];
                 self.tau[self.i - 1] = self.tau[0];
 
-                if self.t == -1 {
+                if self.t == 0 {
                     self.tau[0] = self.i - 1;
                 } else {
-                    self.tau[0] = self.t as usize + 1;
+                    self.tau[0] = self.t + 1;
                 }
             }
 
