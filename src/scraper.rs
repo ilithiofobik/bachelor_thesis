@@ -43,40 +43,42 @@ impl Scraper {
         let mut result = HashSet::new();
         let resp = self.client.get(url).send();
         if let Ok(resp) = resp {
-            let body = resp.text().unwrap();
-            let document = Html::parse_document(&body);
-            let selector = Selector::parse("a").unwrap();
-            match self.must_contain {
-                Some(ref word) => {
-                    for link in document.select(&selector) {
-                        let href = link.value().attr("href").unwrap_or_default();
-                        if href.starts_with("http") && href.contains(word) {
-                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
-                                if let Ok(normalized) = normalizer.normalize(None) {
-                                    let mut normalized = normalized.to_owned();
-                                    if normalized.chars().nth(4) == Some(':') {
-                                        normalized.insert(4, 's');
+            if let Ok(body) = resp.text() {
+                let document = Html::parse_document(&body);
+                if let Ok(selector) = Selector::parse("a") {
+                    match self.must_contain {
+                        Some(ref word) => {
+                            for link in document.select(&selector) {
+                                let href = link.value().attr("href").unwrap_or_default();
+                                if href.starts_with("http") && href.contains(word) {
+                                    if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
+                                        if let Ok(normalized) = normalizer.normalize(None) {
+                                            let mut normalized = normalized.to_owned();
+                                            if normalized.chars().nth(4) == Some(':') {
+                                                normalized.insert(4, 's');
+                                            }
+                                            result.insert(normalized);
+                                        }
                                     }
-                                    result.insert(normalized);
                                 }
                             }
                         }
-                    }
-                }
-                None => {
-                    for link in document.select(&selector) {
-                        let href = link.value().attr("href").unwrap_or_default();
-                        if href.starts_with("http") {
-                            if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
-                                if let Ok(normalized) = normalizer.normalize(None) {
-                                    let mut normalized = normalized.to_owned();
-                                    if normalized.chars().nth(4) == Some(':') {
-                                        normalized.insert(4, 's');
+                        None => {
+                            for link in document.select(&selector) {
+                                let href = link.value().attr("href").unwrap_or_default();
+                                if href.starts_with("http") {
+                                    if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
+                                        if let Ok(normalized) = normalizer.normalize(None) {
+                                            let mut normalized = normalized.to_owned();
+                                            if normalized.chars().nth(4) == Some(':') {
+                                                normalized.insert(4, 's');
+                                            }
+                                            result.insert(normalized);
+                                        }
                                     }
-                                    result.insert(normalized);
                                 }
                             }
-                        } 
+                        }
                     }
                 }
             }

@@ -23,7 +23,7 @@ pub struct GraySubsets {
 impl GraySubsets {
     pub fn new(n: usize, k: usize) -> GraySubsets {
         let mut tau: Vec<usize> = (0..n + 1).map(|x| x + 1).collect();
-        tau[0] = k;
+        tau[0] = if k > 0 { k } else { n + 1 };
         GraySubsets {
             n,
             t: k as isize - 1,
@@ -43,7 +43,7 @@ impl Iterator for GraySubsets {
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut result = [0, 0];
-        loop {
+        while self.tau[0] < self.n {
             self.i = self.tau[0];
             self.tau[0] = self.tau[self.i];
             self.tau[self.i] = self.i + 1;
@@ -74,7 +74,7 @@ impl Iterator for GraySubsets {
             if self.t as usize == self.i - 1 || self.t == -1 {
                 self.t += 1;
             } else {
-                self.t = self.t - self.g[self.i - 1] as isize;
+                self.t -= self.g[self.i - 1] as isize;
                 self.tau[self.i - 1] = self.tau[0];
 
                 if self.t == -1 {
@@ -83,7 +83,7 @@ impl Iterator for GraySubsets {
                     self.tau[0] = self.t as usize + 1;
                 }
             }
-            if self.i == self.n { break }
+
             return Some(result)
         }
         None

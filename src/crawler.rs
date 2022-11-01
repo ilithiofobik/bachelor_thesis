@@ -32,9 +32,9 @@ impl Crawler {
     /// Crawl the web based on given url and max_depth.
     /// ```
     /// use bipartite::crawler::Crawler;
-    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, Some("pwr.edu".to_owned()));
+    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 3, Some("pwr.edu".to_owned()));
     /// let links = crawler.crawl();
-    /// links.write_to_json("testing.json").unwrap(); // to be deleted
+    /// links.write_to_json("testing3.json").unwrap(); // to be deleted
     /// assert_eq!(links.idx_to_name(0).unwrap(), "https://pwr.edu.pl/");
     /// for idx in links.vertices().skip(1) {
     ///     assert!(links.idx_to_name(idx).unwrap().contains("pwr.edu"));
