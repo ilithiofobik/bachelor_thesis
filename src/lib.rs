@@ -4,7 +4,7 @@
 pub mod combinatorics;
 /// # graphs
 /// 
-/// Module used to represent a graph with directed edges.
+/// Module used to represent a graph with undirected edges.
 pub mod graphs;
 /// # scraper
 /// 
