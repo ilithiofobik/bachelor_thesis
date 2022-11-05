@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque};
 use std::sync::{Arc, RwLock, mpsc};
 
 use super::graphs::Graph;
@@ -12,32 +12,36 @@ enum Index {
 pub struct Crawler {
     root: String,
     max_depth: usize,
-    must_contain: Option<String>
+    must_contain: Vec<String>,
+    stop_words: Vec<String>,
 }
 
 impl Crawler {
     /// Create a new crawler.
     /// ```
     /// use bipartite::crawler::Crawler;
-    /// let parser = Crawler::new("<html><body><p>Hello</p></body></html>".to_owned(), 1, None);
+    /// let parser = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, vec![], vec![]);
     /// ```
-    pub fn new(root: String, max_depth: usize, must_contain: Option<String>) -> Crawler {
+    pub fn new(root: String, max_depth: usize, must_contain: Vec<String>, stop_words: Vec<String>) -> Crawler {
         Crawler {
             root,
             max_depth,
-            must_contain
+            must_contain,
+            stop_words,
         }
     }
 
     /// Crawl the web based on given url and max_depth.
+    /// Each url is checked for stop words and must_contain word.
     /// ```
     /// use bipartite::crawler::Crawler;
-    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 3, Some("pwr.edu".to_owned()));
+    /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, vec!["pwr.edu".to_owned()], vec![".txt".to_owned()]);
     /// let links = crawler.crawl();
     /// links.write_to_json("testing3.json").unwrap(); // to be deleted
     /// assert_eq!(links.idx_to_name(0).unwrap(), "https://pwr.edu.pl/");
     /// for idx in links.vertices().skip(1) {
     ///     assert!(links.idx_to_name(idx).unwrap().contains("pwr.edu"));
+    ///     assert!(!links.idx_to_name(idx).unwrap().contains(".txt"));
     ///     assert_ne!(links.idx_to_name(idx).unwrap(), "https://pwr.edu.pl/");
     /// }
     /// ```
@@ -55,7 +59,12 @@ impl Crawler {
         };  
         let scrapers = {
             let mut scrapers = Vec::with_capacity(num_of_threads);
-            (0..num_of_threads).into_iter().for_each(|_| scrapers.push(Arc::new(Scraper::new(self.must_contain.clone()))));
+            
+            (0..num_of_threads)
+            .into_iter()
+            .for_each(|_| scrapers.push(Arc::new(Scraper::new(self.must_contain.clone(),
+                                                                      self.stop_words.clone()))));
+            
             scrapers
         }; // scrapers are used but not changed     
         
