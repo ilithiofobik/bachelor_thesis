@@ -87,7 +87,7 @@ impl Crawler {
                     let links = scraper.scrape(&root_node_name);
                     let links = 
                         if depth == *max_depth {
-                            links.into_iter().filter(|link| graph.contains_vertix(link)).collect()
+                            links.into_iter().filter(|link| graph.contains_vertex(link)).collect()
                         } else {
                             links
                         };

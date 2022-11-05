@@ -147,6 +147,35 @@ impl Graph {
         graph
     }
 
+    /// Creates a complete graph with given number of vertices.
+    /// # Examples
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let mut k2 = Graph::complete(2);
+    /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
+    /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
+    /// ```
+    pub fn complete(num_of_vertices: usize) -> Graph {
+        let num_of_edges = num_of_vertices * (num_of_vertices - 1) / 2;
+        let neighbours =
+            (0..num_of_vertices)
+            .into_iter()
+            .map(|i|  (0..num_of_vertices).filter(|j| i != *j).collect::<HashSet<usize>>())
+            .collect();
+
+        let idx_to_name_map = (0..num_of_vertices).into_iter().map(|i| format!("vertex_{}", i)).collect();
+        let name_to_idx_map = (0..num_of_vertices).into_iter().map(|i| (format!("vertex_{}", i), i)).collect();
+
+        Graph {
+            num_of_vertices,
+            num_of_edges,
+            neighbours,
+            idx_to_name_map,
+            name_to_idx_map,
+        }
+    }
+
+
     /// Creates a graph with no edges based on a vector of vertices names.
     /// # Examples
     /// ```
@@ -208,10 +237,10 @@ impl Graph {
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
-    /// assert!(e1.contains_vertix("vertex_0"));
-    /// assert!(!e1.contains_vertix("vertex_1"));
+    /// assert!(e1.contains_vertex("vertex_0"));
+    /// assert!(!e1.contains_vertex("vertex_1"));
     /// ```
-    pub fn contains_vertix(&self, name: &str) -> bool {
+    pub fn contains_vertex(&self, name: &str) -> bool {
         self.name_to_idx_map.contains_key(name)
     }
 
@@ -223,9 +252,10 @@ impl Graph {
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge_idx(0, 1);
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
+    /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// ```
     pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
-        if from < self.num_of_vertices && to < self.num_of_vertices {
+        if from < self.num_of_vertices && to < self.num_of_vertices && from != to {
             self.neighbours[to].insert(from);
             self.neighbours[from].insert(to);
             self.num_of_edges += 1;
@@ -243,9 +273,10 @@ impl Graph {
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
+    /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// ```
     pub fn add_edge(&mut self, from: &str, to: &str) -> bool {
-        if self.name_to_idx_map.contains_key(from) && self.name_to_idx_map.contains_key(to) {
+        if self.name_to_idx_map.contains_key(from) && self.name_to_idx_map.contains_key(to) && from != to {
             self.neighbours[self.name_to_idx_map[to]].insert(self.name_to_idx_map[from]);
             self.neighbours[self.name_to_idx_map[from]].insert(self.name_to_idx_map[to]);
             self.num_of_edges += 1;
@@ -266,6 +297,8 @@ impl Graph {
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
     /// assert_eq!(k2.neighbours_idx(0), Ok(HashSet::from([1])));
+    /// assert_eq!(k2.neighbours_idx(1), Ok(HashSet::from([0])));
+    /// assert_eq!(k2.neighbours_idx(2), Err("Index does not exist in the graph."));
     /// ```
     pub fn neighbours_idx(&self, idx: usize) -> Result<HashSet<usize>, &str> {
         if idx >= self.num_of_vertices {
@@ -273,6 +306,23 @@ impl Graph {
         } else {
             Ok(self.neighbours[idx].clone())
         }
+    }
+
+
+    /// Returns list of s vertices with highest degree.
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let mut g4 = Graph::from_names(vec!["v_0".to_string(), "v_1".to_string(), "v_2".to_string(), "v_3".to_string()]); 
+    /// g4.add_edge("v_3", "v_0");
+    /// g4.add_edge("v_3", "v_1");
+    /// g4.add_edge("v_3", "v_2");
+    /// g4.add_edge("v_2", "v_1");
+    /// assert_eq!(g4.highest_degree_vertices(3), vec![3, 1, 2]);
+    /// 
+    pub fn highest_degree_vertices(&self, s: usize) -> Vec<usize> {
+        let mut vertices = self.vertices().collect::<Vec<usize>>();
+        vertices.sort_by(|a, b| self.neighbours[*b].len().cmp(&self.neighbours[*a].len()));
+        vertices[0..s].to_vec()
     }
 
     /// Writes a graph to a json file with given filename.
