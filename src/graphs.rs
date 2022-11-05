@@ -28,8 +28,7 @@ impl Color {
 pub struct Graph {
     num_of_vertices: usize,
     num_of_edges: usize,
-    from_vertices: Vec<HashSet<usize>>,
-    to_vertices: Vec<HashSet<usize>>,
+    neighbours: Vec<HashSet<usize>>,
     idx_to_name_map: Vec<String>,
     name_to_idx_map: HashMap<String, usize>,
 }
@@ -38,7 +37,7 @@ pub struct Graph {
 struct GraphJson {
     num_of_vertices: usize,
     num_of_edges: usize,
-    to_vertices: Vec<Vec<usize>>,
+    neighbours: Vec<Vec<usize>>,
     names: Vec<String>,
 }
 
@@ -111,8 +110,7 @@ impl Graph {
         Graph {
             num_of_vertices: 0,
             num_of_edges: 0,
-            from_vertices: vec![],
-            to_vertices: vec![],
+            neighbours: vec![],
             idx_to_name_map: vec![],
             name_to_idx_map: HashMap::new(),
         }
@@ -166,8 +164,7 @@ impl Graph {
         Graph {
             num_of_vertices: names.len(),
             num_of_edges: 0,
-            from_vertices: vec![HashSet::new(); names.len()],
-            to_vertices: vec![HashSet::new(); names.len()],
+            neighbours: vec![HashSet::new(); names.len()],
             idx_to_name_map: names,
             name_to_idx_map,
         }
@@ -187,8 +184,7 @@ impl Graph {
     /// ```
     pub fn add_vertex(&mut self, name: &str) {
         if !self.name_to_idx_map.contains_key(name) {
-            self.from_vertices.push(HashSet::new());
-            self.to_vertices.push(HashSet::new());
+            self.neighbours.push(HashSet::new());
             self.name_to_idx_map
                 .insert(String::from(name), self.num_of_vertices);
             self.idx_to_name_map.push(String::from(name));
@@ -230,8 +226,8 @@ impl Graph {
     /// ```
     pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
         if from < self.num_of_vertices && to < self.num_of_vertices {
-            self.from_vertices[to].insert(from);
-            self.to_vertices[from].insert(to);
+            self.neighbours[to].insert(from);
+            self.neighbours[from].insert(to);
             self.num_of_edges += 1;
             true
         } else {
@@ -250,8 +246,8 @@ impl Graph {
     /// ```
     pub fn add_edge(&mut self, from: &str, to: &str) -> bool {
         if self.name_to_idx_map.contains_key(from) && self.name_to_idx_map.contains_key(to) {
-            self.from_vertices[self.name_to_idx_map[to]].insert(self.name_to_idx_map[from]);
-            self.to_vertices[self.name_to_idx_map[from]].insert(self.name_to_idx_map[to]);
+            self.neighbours[self.name_to_idx_map[to]].insert(self.name_to_idx_map[from]);
+            self.neighbours[self.name_to_idx_map[from]].insert(self.name_to_idx_map[to]);
             self.num_of_edges += 1;
             true
         } else {
@@ -275,7 +271,7 @@ impl Graph {
         if idx >= self.num_of_vertices {
             Err("Index does not exist in the graph.")
         } else {
-            Ok(self.to_vertices[idx].clone())
+            Ok(self.neighbours[idx].clone())
         }
     }
 
@@ -292,7 +288,7 @@ impl Graph {
         let graph = json!({
             "num_of_vertices": self.num_of_vertices,
             "num_of_edges": self.num_of_edges,
-            "to_vertices": self.to_vertices,
+            "neighbours": self.neighbours,
             "names": self.idx_to_name_map
         }
         );
@@ -320,7 +316,7 @@ impl Graph {
 
         let num_of_edges = json["num_of_edges"].as_u64().unwrap() as usize;
 
-        let to_vertices = json["to_vertices"]
+        let neighbours = json["neighbours"]
             .as_array()
             .unwrap()
             .iter()
@@ -333,13 +329,6 @@ impl Graph {
                     .collect::<HashSet<usize>>()
             })
             .collect::<Vec<HashSet<usize>>>();
-
-        let mut from_vertices = vec![HashSet::new(); num_of_vertices];
-        to_vertices.iter().enumerate().for_each(|(idx, neighbours)| {
-            neighbours.iter().for_each(|neighbour| {
-                from_vertices[*neighbour].insert(idx);
-            });
-        });
 
         let names: Vec<String> = json["names"]
             .as_array()
@@ -356,8 +345,7 @@ impl Graph {
         Graph {
             num_of_vertices,
             num_of_edges,
-            from_vertices,
-            to_vertices,
+            neighbours,
             idx_to_name_map: names,
             name_to_idx_map,
         }
@@ -381,15 +369,7 @@ impl Graph {
                 stack.push(idx);
                 while !stack.is_empty() {
                     let current = stack.pop().unwrap(); 
-                    for neighbour in &self.from_vertices[current] {
-                        if color[*neighbour] == Color::Gray {
-                            color[*neighbour] = color[current].reverse();
-                            stack.push(*neighbour);
-                        } else if color[*neighbour] == color[current] {
-                            return false
-                        }
-                    }
-                    for neighbour in &self.to_vertices[current] {
+                    for neighbour in &self.neighbours[current] {
                         if color[*neighbour] == Color::Gray {
                             color[*neighbour] = color[current].reverse();
                             stack.push(*neighbour);

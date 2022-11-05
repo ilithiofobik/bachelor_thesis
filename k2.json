@@ -1,1 +1,1 @@
-{"names":["vertex_0","vertex_1"],"num_of_edges":1,"num_of_vertices":2,"to_vertices":[[1],[]]}
+{"names":["vertex_0","vertex_1"],"neighbours":[[1],[0]],"num_of_edges":1,"num_of_vertices":2}
