@@ -66,37 +66,27 @@ impl Graph {
     }
 
     /// Returns the name of the vertex with given index.
-    /// The return type is Result which is Ok if the index exists in the graph and Err otherwise.
+    /// The return type is Option which is Some if the index exists in the graph and None otherwise.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
     /// assert_eq!("vertex_0", e1.idx_to_name(0).unwrap());
     /// ```
-    pub fn idx_to_name(&self, idx: usize) -> Result<String, &str> {
-        if idx < self.num_of_vertices {
-            let name = self.idx_to_name_map[idx].clone();
-            Ok(name)
-        } else {
-            Err("Index is out of bounds.")
-        }
+    pub fn idx_to_name(&self, idx: usize) -> Option<String> {
+        self.idx_to_name_map.get(idx).cloned()
     }
 
-    /// Returns the name of the vertex with given index.
-    /// The return type is Result which is Ok if the index exists in the graph and Err otherwise.
+    /// Returns the index of the vertex with given name.
+    /// The return type is Option which is Some if the index exists in the graph and None otherwise.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
     /// assert_eq!(0, e1.name_to_idx("vertex_0").unwrap());
     /// ```
-    pub fn name_to_idx(&self, name: &str) -> Result<usize, &str> {
-        if self.name_to_idx_map.contains_key(name) {
-            let idx = self.name_to_idx_map[name];
-            Ok(idx)
-        } else {
-            Err("There is no vertex with such name.")
-        }
+    pub fn name_to_idx(&self, name: &str) -> Option<usize> {
+        self.name_to_idx_map.get(name).cloned()
     }
 
     /// Creates an empty graph. The graph has 0 vertices, empty adjencency list and empty mapping.
@@ -267,7 +257,7 @@ impl Graph {
     /// assert_eq!(k5.neighbours_idx(0).unwrap(), HashSet::from([1, 2, 3]));
     /// ```
     pub fn remove_vertex(&mut self, name: &str) -> bool {
-        if let Ok(idx) = self.name_to_idx(name) {
+        if let Some(idx) = self.name_to_idx(name) {
             self.num_of_vertices -= 1;
             self.num_of_edges -= self.neighbours[idx].len();
 
@@ -331,7 +321,10 @@ impl Graph {
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// ```
     pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
-        if from < self.num_of_vertices && to < self.num_of_vertices && from != to {
+        if from < self.num_of_vertices 
+        && to < self.num_of_vertices 
+        && from != to
+        && !self.neighbours[from].contains(&to) {
             self.neighbours[to].insert(from);
             self.neighbours[from].insert(to);
             self.num_of_edges += 1;
@@ -352,14 +345,15 @@ impl Graph {
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// ```
     pub fn add_edge(&mut self, from: &str, to: &str) -> bool {
-        if self.name_to_idx_map.contains_key(from) && self.name_to_idx_map.contains_key(to) && from != to {
-            self.neighbours[self.name_to_idx_map[to]].insert(self.name_to_idx_map[from]);
-            self.neighbours[self.name_to_idx_map[from]].insert(self.name_to_idx_map[to]);
-            self.num_of_edges += 1;
-            true
-        } else {
-            false
-        }
+        if let (Some (from_idx), Some (to_idx)) = (self.name_to_idx(from), self.name_to_idx(to)) {
+            if from != to && !self.neighbours[from_idx].contains(&to_idx) {
+                self.neighbours[to_idx].insert(from_idx);
+                self.neighbours[from_idx].insert(to_idx);
+                self.num_of_edges += 1;
+                return true
+            }
+        } 
+        false
     }
 
     /// Lists all neighbours of a given vertex based on its index.

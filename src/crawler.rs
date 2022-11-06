@@ -95,8 +95,8 @@ impl Crawler {
                         let link = link;
                         let index = graph.name_to_idx(&link);
                         match index {
-                            Ok(idx) => Index::NumIndex(idx),
-                            Err(_) => Index::StrIndex(link)
+                            Some(idx) => Index::NumIndex(idx),
+                            None             => Index::StrIndex(link)
                         }
                     }).collect::<Vec<Index>>();
 
@@ -120,10 +120,10 @@ impl Crawler {
                         Index::StrIndex(link) => {
                             let graph_idx = graph_write.name_to_idx(&link);
                             match graph_idx {
-                                Ok(link_id) => {
+                                Some(link_id) => {
                                     graph_write.add_edge_idx(node_id, link_id);
                                 },
-                                Err(_) => {
+                                None => {
                                     graph_write.add_vertex(&link);
                                     let link_id = graph_write.get_num_of_vertices() - 1;
                                     graph_write.add_edge(&root_node_name, &link);
