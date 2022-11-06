@@ -133,11 +133,6 @@ impl Graph {
         }
         let mut rand_thread = rand::thread_rng();
         for from in 0..num_of_vertices {
-            for to in 0..from {
-                if rand_thread.gen_range(0.0..1.0) < ppb {
-                    graph.add_edge_idx(from, to);
-                }
-            }
             for to in from + 1..num_of_vertices {
                 if rand_thread.gen_range(0.0..1.0) < ppb {
                     graph.add_edge_idx(from, to);
@@ -405,8 +400,8 @@ impl Graph {
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
-    /// let mut k2 = Graph::random(2, 1.0);
-    /// let mut k3 = Graph::random(3, 1.0);
+    /// let mut k2 = Graph::complete(2);
+    /// let mut k3 = Graph::complete(3);
     /// assert!(k2.is_bipartite());
     /// assert!(!k3.is_bipartite());
     /// ```

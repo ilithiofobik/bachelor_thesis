@@ -80,8 +80,8 @@ fn solution_from_curr_subset(curr_subset: &[usize], highest_degree_vertices: &[u
 /// use bipartite::graphs::Graph;
 /// use std::collections::HashSet;
 /// 
-/// let k1000 = Graph::complete(1000);
-/// let (left, right) = find_bipartite(&k1000, 10, 3);
+/// let k300 = Graph::complete(300);
+/// let (left, right) = find_bipartite(&k300, 10, 3);
 /// assert_eq!(left, HashSet::from([0,1,2]));  
 /// assert_eq!(right, HashSet::from([10,11,12])); 
 /// ```
