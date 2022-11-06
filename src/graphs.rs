@@ -122,7 +122,7 @@ impl Graph {
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
-    /// let mut k2 = Graph::random(2, 1.0);
+    /// let k2 = Graph::random(2, 1.0);
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
     /// ```
@@ -142,11 +142,47 @@ impl Graph {
         graph
     }
 
+    /// Creates a random graph with given number of vertices and edges.
+    /// Each edge has the same probability of being present.
+    /// # Examples
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let rand42 = Graph::random_given_edges(42, 42);
+    /// assert_eq!(rand42.get_num_of_edges(), 42);
+    /// assert_eq!(rand42.get_num_of_vertices(), 42);
+    /// ```
+    pub fn random_given_edges(num_of_vertices: usize, num_of_edges: usize) -> Graph {
+        let mut graph = Graph::empty();
+        for i in 0..num_of_vertices {
+            graph.add_vertex(&format!("vertex_{}", i));
+        }
+
+        let mut edges_list =
+            (0..num_of_vertices)
+            .flat_map(|from| (from + 1..num_of_vertices).map(move |to| (from, to)))
+            .collect::<Vec<(usize, usize)>>();
+
+        let potential_edges_count = edges_list.len();
+
+        let mut rand_thread = rand::thread_rng();
+        
+        for from in 0..num_of_edges - 2 {
+            let to = rand_thread.gen_range(from + 1..potential_edges_count);
+            edges_list.swap(from, to);
+        }
+
+        (0..num_of_edges)
+        .map(|i| edges_list[i])
+        .for_each(|(from, to)| { graph.add_edge_idx(from, to); });
+
+        graph
+    }
+
     /// Creates a complete graph with given number of vertices.
     /// # Examples
     /// ```
     /// use bipartite::graphs::Graph;
-    /// let mut k2 = Graph::complete(2);
+    /// let k2 = Graph::complete(2);
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
     /// ```
