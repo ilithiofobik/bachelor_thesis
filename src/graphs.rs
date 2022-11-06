@@ -252,6 +252,51 @@ impl Graph {
         }
     }
 
+    /// Removes a vertex with given name.
+    /// If the name does not exist then nothing happens.
+    /// Returns true if the vertex was removed.
+    /// # Examples
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// use std::collections::HashSet;
+    /// let mut k5 = Graph::complete(5);
+    /// assert!(k5.remove_vertex("vertex_2"));
+    /// assert!(!k5.remove_vertex("vertex_2"));
+    /// assert_eq!(4, k5.get_num_of_vertices());
+    /// assert_eq!(6, k5.get_num_of_edges());
+    /// assert_eq!(k5.neighbours_idx(0).unwrap(), HashSet::from([1, 2, 3]));
+    /// ```
+    pub fn remove_vertex(&mut self, name: &str) -> bool {
+        if let Ok(idx) = self.name_to_idx(name) {
+            self.num_of_vertices -= 1;
+            self.num_of_edges -= self.neighbours[idx].len();
+
+            self.neighbours.remove(idx);
+            self.neighbours =
+                self.neighbours
+                .clone()
+                .into_iter()
+                .map(|mut neighbours| { 
+                    neighbours.remove(&idx); 
+                    neighbours.into_iter().map(|neighbour| if neighbour > idx { neighbour - 1 } else { neighbour }).collect() 
+                })
+                .collect();
+
+            self.idx_to_name_map.remove(idx);
+            
+            self.name_to_idx_map.remove(&*name);
+            self.name_to_idx_map =
+                self.name_to_idx_map
+                .clone()
+                .into_iter()
+                .map(|(s, i)| if i > idx { (s, i - 1) } else { (s, i) })
+                .collect();
+            
+            return true 
+        } 
+        false
+    }
+
     /// Returns an iterator on all vertices indices.
     /// # Examples
     /// ```
@@ -340,7 +385,7 @@ impl Graph {
     }
 
 
-    /// Returns list of s vertices with highest degree.
+    /// Returns sorted list of s vertices with highest degree.
     /// ```
     /// use bipartite::graphs::Graph;
     /// let mut g4 = Graph::from_names(vec!["v_0".to_string(), "v_1".to_string(), "v_2".to_string(), "v_3".to_string()]); 
@@ -353,6 +398,22 @@ impl Graph {
     pub fn highest_degree_vertices(&self, s: usize) -> Vec<usize> {
         let mut vertices = self.vertices().collect::<Vec<usize>>();
         vertices.sort_by(|a, b| self.neighbours[*b].len().cmp(&self.neighbours[*a].len()));
+        vertices[0..s].to_vec()
+    }
+
+    /// Returns sorted list of s vertices with lowest degree.
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let mut g4 = Graph::from_names(vec!["v_0".to_string(), "v_1".to_string(), "v_2".to_string(), "v_3".to_string()]); 
+    /// g4.add_edge("v_3", "v_0");
+    /// g4.add_edge("v_3", "v_1");
+    /// g4.add_edge("v_3", "v_2");
+    /// g4.add_edge("v_2", "v_1");
+    /// assert_eq!(g4.lowest_degree_vertices(3), vec![0, 1, 2]);
+    /// 
+    pub fn lowest_degree_vertices(&self, s: usize) -> Vec<usize> {
+        let mut vertices = self.vertices().collect::<Vec<usize>>();
+        vertices.sort_by(|a, b| self.neighbours[*a].len().cmp(&self.neighbours[*b].len()));
         vertices[0..s].to_vec()
     }
 
@@ -462,5 +523,37 @@ impl Graph {
             }
         }
         true
+    }
+
+    /// Removes vertices untill the graph satisfies |E| ^ 2 > 64 * |V| ^ 3
+    /// Returns boolean value saying if the reduction was successful.
+    /// # Examples
+    /// ```
+    /// use bipartite::graphs::Graph;
+    /// let mut k256 = Graph::complete(256);
+    /// let mut rand1024_with_leaf = Graph::random_given_edges(1024, 262145);
+    /// rand1024_with_leaf.add_vertex("leaf");
+    /// rand1024_with_leaf.add_edge_idx(1024, 0);
+    /// assert!(rand1024_with_leaf.reduce_to_dense());
+    /// assert!(!k256.reduce_to_dense());
+    pub fn reduce_to_dense(&mut self) -> bool {
+        let lowest_degree_vertices: Vec<String> = 
+            self.lowest_degree_vertices(self.num_of_vertices)
+            .into_iter()
+            .map(|idx| self.idx_to_name(idx).unwrap().clone())
+            .collect();
+
+        for name in lowest_degree_vertices {
+            let n = self.get_num_of_vertices();
+            let m = self.get_num_of_edges();
+
+            println!("n: {}, m: {}", n, m);
+
+            if m.pow(2) > 64 * n.pow(3) {
+                return true
+            }
+            self.remove_vertex(&name);
+        }
+        false
     }
 }

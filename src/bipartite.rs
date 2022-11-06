@@ -89,7 +89,7 @@ pub fn find_bipartite(graph: &Graph, highest_degree_size: usize, bipartite_size:
     let n = graph.get_num_of_vertices();
     let m = graph.get_num_of_edges();
     
-    if 0 < m && m ^ 2 < 64 * (n ^ 3) {
+    if 0 < m && m.pow(2) < 64 * n.pow(3) {
         for i in graph.vertices() {
             if let Some(j) = graph.neighbours_idx(i).unwrap().iter().next() {
                 return (HashSet::from([i]), HashSet::from([*j])); 
