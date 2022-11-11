@@ -41,10 +41,9 @@ impl GraySubsets {
 impl Iterator for GraySubsets {
     type Item = [usize; 2];
 
-    #[allow(clippy::never_loop)]
     fn next(&mut self) -> Option<Self::Item> {
         let mut result = [0, 0];
-        while self.tau[0] < self.n {
+        if self.tau[0] < self.n {
             self.i = self.tau[0];
             self.tau[0] = self.tau[self.i];
             self.tau[self.i] = self.i + 1;

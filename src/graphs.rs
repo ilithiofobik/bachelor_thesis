@@ -71,7 +71,8 @@ impl Graph {
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
-    /// assert_eq!("vertex_0", e1.idx_to_name(0).unwrap());
+    /// assert_eq!(Some("vertex_0".to_string()), e1.idx_to_name(0));
+    /// assert_eq!(None, e1.idx_to_name(1));
     /// ```
     pub fn idx_to_name(&self, idx: usize) -> Option<String> {
         self.idx_to_name_map.get(idx).cloned()
@@ -83,7 +84,8 @@ impl Graph {
     /// ```
     /// use bipartite::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
-    /// assert_eq!(0, e1.name_to_idx("vertex_0").unwrap());
+    /// assert_eq!(Some (0), e1.name_to_idx("vertex_0"));
+    /// assert_eq!(None, e1.name_to_idx("vertex_1"));
     /// ```
     pub fn name_to_idx(&self, name: &str) -> Option<usize> {
         self.name_to_idx_map.get(name).cloned()
@@ -273,8 +275,8 @@ impl Graph {
                 .collect();
 
             self.idx_to_name_map.remove(idx);
-            
-            self.name_to_idx_map.remove(&*name);
+            self.name_to_idx_map.remove(name);
+
             self.name_to_idx_map =
                 self.name_to_idx_map
                 .clone()
@@ -534,7 +536,7 @@ impl Graph {
         let lowest_degree_vertices: Vec<String> = 
             self.lowest_degree_vertices(self.num_of_vertices)
             .into_iter()
-            .map(|idx| self.idx_to_name(idx).unwrap().clone())
+            .map(|idx| self.idx_to_name(idx).unwrap())
             .collect();
 
         for name in lowest_degree_vertices {
