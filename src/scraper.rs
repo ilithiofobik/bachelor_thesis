@@ -57,7 +57,7 @@ impl Scraper {
                             if let Ok(normalizer) = normalizer::UrlNormalizer::new(href) {
                                 if let Ok(normalized) = normalizer.normalize(None) {
                                     let mut normalized = normalized.to_owned();
-                                    if normalized.chars().nth(4) == Some(':') {
+                                    if normalized.chars().nth(4) != Some('s') {
                                         normalized.insert(4, 's');
                                     }
                                     result.insert(normalized);
