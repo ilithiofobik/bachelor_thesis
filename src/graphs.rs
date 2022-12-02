@@ -33,6 +33,16 @@ pub struct Graph {
     name_to_idx_map: HashMap<String, usize>,
 }
 
+/// For generation purposes
+#[derive(Clone)]
+pub struct GraphVec {
+    num_of_vertices: usize,
+    num_of_edges: usize,
+    neighbours: Vec<Vec<usize>>,
+    idx_to_name_map: Vec<String>,
+}
+
+
 #[derive(Serialize, Deserialize)]
 struct GraphJson {
     num_of_vertices: usize,
@@ -146,7 +156,7 @@ impl Graph {
     pub fn random_given_edges(num_of_vertices: usize, num_of_edges: usize) -> Graph {
         let mut graph = Graph::empty();
         for i in 0..num_of_vertices {
-            graph.add_vertex(&format!("vertex_{}", i));
+            graph.add_vertex(&format!("v{}", i));
         }
 
         let mut edges_list =
@@ -551,5 +561,85 @@ impl Graph {
             self.remove_vertex(&name);
         }
         false
+    }
+}
+
+impl GraphVec {
+    pub fn empty() -> GraphVec {
+        GraphVec {
+            num_of_vertices: 0,
+            num_of_edges: 0,
+            neighbours: vec![],
+            idx_to_name_map: vec![]
+        }
+    }
+
+    pub fn add_vertex(&mut self, name: &str) {
+        self.neighbours.push(Vec::new());
+        self.idx_to_name_map.push(String::from(name));
+        self.num_of_vertices += 1;
+    }
+
+    pub fn complete(num_of_vertices: usize) -> GraphVec {
+        let num_of_edges = num_of_vertices * (num_of_vertices - 1) / 2;
+        let neighbours =
+            (0..num_of_vertices)
+            .into_iter()
+            .map(|i|  (0..num_of_vertices).filter(|j| i != *j).collect::<Vec<usize>>())
+            .collect();
+
+        let idx_to_name_map = (0..num_of_vertices).into_iter().map(|i| format!("{}", i)).collect();
+
+        GraphVec {
+            num_of_vertices,
+            num_of_edges,
+            neighbours,
+            idx_to_name_map,
+        }
+    }
+
+    pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
+        self.neighbours[to].push(from);
+        self.neighbours[from].push(to);
+        self.num_of_edges += 1;
+        true
+    }
+
+    pub fn random_given_edges(num_of_vertices: usize, num_of_edges: usize) -> GraphVec {
+        let mut graph = GraphVec::empty();
+        for i in 0..num_of_vertices {
+            graph.add_vertex(&format!("{}", i));
+        }
+
+        let mut edges_list =
+            (0..num_of_vertices)
+            .flat_map(|from| (from + 1..num_of_vertices).map(move |to| (from, to)))
+            .collect::<Vec<(usize, usize)>>();
+
+        let potential_edges_count = edges_list.len();
+
+        let mut rand_thread = rand::thread_rng();
+        
+        for from in 0..num_of_edges - 2 {
+            let to = rand_thread.gen_range(from + 1..potential_edges_count);
+            edges_list.swap(from, to);
+        }
+
+        (0..num_of_edges)
+        .map(|i| edges_list[i])
+        .for_each(|(from, to)| { graph.add_edge_idx(from, to); });
+
+        graph
+    }
+
+    pub fn write_to_json(&self, filename: &str) -> serde_json::Result<()> {
+        let graph = json!({
+            "num_of_vertices": self.num_of_vertices,
+            "num_of_edges": self.num_of_edges,
+            "neighbours": self.neighbours,
+            "names": self.idx_to_name_map
+        }
+        );
+        serde_json::to_writer(&File::create(filename).unwrap(), &graph)
     }
 }

@@ -30,12 +30,12 @@ impl CountArray {
         }
     }
 
-    fn two_bit_change(&mut self, g: &Graph, change: [usize; 2]) {
-        g.neighbours_idx(self.highest_degree_vec[change[0]]).unwrap().iter().for_each(|j| {
+    fn two_bit_change(&mut self, g: &Graph, change_0: usize, change_1: usize) {
+        g.neighbours_idx(self.highest_degree_vec[change_0]).unwrap().iter().for_each(|j| {
             self.count_array[*j] -= 1;
         });
 
-        g.neighbours_idx(self.highest_degree_vec[change[1]]).unwrap().iter().for_each(|j| {
+        g.neighbours_idx(self.highest_degree_vec[change_1]).unwrap().iter().for_each(|j| {
             self.count_array[*j] += 1;
         });
     }
@@ -109,10 +109,10 @@ pub fn find_bipartite(graph: &Graph, highest_degree_size: usize, bipartite_size:
         return (c_set, d_set);
     }
 
-    for change in gray_generator {
-        b.two_bit_change(graph, change);
-        curr_subset[change[0]] = 0;
-        curr_subset[change[1]] = 1;
+    for (change_0, change_1) in gray_generator {
+        b.two_bit_change(graph, change_0, change_1);
+        curr_subset[change_0] = 0;
+        curr_subset[change_1] = 1;
 
         if b.is_ok() {
             let c_set = c_solution(&curr_subset, &highest_degree_vertices);
