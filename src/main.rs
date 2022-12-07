@@ -1,34 +1,19 @@
 use std::time::Instant;
-use bipartite::graphs::GraphVec;
+use bipartite::graphs::Graph;
+use bipartite::bipartite::{find_bipartite, qr_parameters};
 
 fn main() {
-    for n in (1..=10).map(|x| 10000 * x) {
-        let m = (8.0 * (n as f64).powf(1.5)).ceil() as usize + 1;
-
-        let start = Instant::now();
-        let k_n = GraphVec::complete(n);
-        let filename = format!("k_n{}.json", n);
-        k_n.write_to_json(&filename).unwrap();
-        let duration = start.elapsed();
-        println!("Done {} in {:?}", filename, duration);
-    
-        for v in 0..10 {
-            let start = Instant::now();
-            let g = GraphVec::random_given_edges(n, m);
-            let filename = format!("random_n{}_m{}_version{}.json", n, m, v);
-            g.write_to_json(&filename).unwrap();
-            let duration = start.elapsed();
-            println!("Done {} in {:?}", filename, duration);
-        }
-    }
-
     // Complete graphs
-    for n in (2..=10).map(|x| 1000 * x) {
-        let start = Instant::now();
-        let k_n = GraphVec::complete(n);
+    for n in (1..=10).map(|x| 1000 * x) {
         let filename = format!("k_n{}.json", n);
-        k_n.write_to_json(&filename).unwrap();
+        let result_filename = format!("result_{}", filename);
+        let k_n = Graph::read_from_json(&filename);
+        let (q, r) = qr_parameters(&k_n);
+        let start = Instant::now();
+        let (set1, set2) = find_bipartite(&k_n, 2, 2);
         let duration = start.elapsed();
+        let result = format!("duration={:?}, q={}, r={}, set1={}, set2={}", duration, q, r, set1.len(), set2.len());
+        std::fs::write(result_filename, result).expect("Unable to write file");
         println!("Done {} in {:?}", filename, duration);
     }
 }

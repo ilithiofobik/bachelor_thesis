@@ -62,6 +62,29 @@ impl CountArray {
     }
 }
 
+
+/// Calculates the q and r values described in the paper "Finding bipartite subgraphs efficiently" by Dhruv Mubayi and Gyorgy Turan.
+/// # Examples:
+/// ```
+/// use bipartite::bipartite::qr_parameters;
+/// use bipartite::graphs::Graph;
+/// let k1500 = Graph::complete(1500);
+/// let (q, r) = qr_parameters(&k1500);
+/// assert_eq!(q, 2);
+/// assert_eq!(r, 4);
+/// ```
+pub fn qr_parameters(graph: &Graph) -> (usize, usize) {
+    let n = graph.get_num_of_vertices() as f64;
+    let m = graph.get_num_of_edges() as f64;
+    let q_numerator = n.ln() - (2.0f64).ln();
+    let q_denominator = (2.0f64).ln() + 1.0 + n.ln() + n.ln() - m.ln();
+    let q = ((q_numerator / q_denominator) as f64).floor();
+    let r_numerator = q * n * n;
+    let r_denominator = m;
+    let r = ((r_numerator / r_denominator) as f64).floor();
+    (q as usize, r as usize)
+}
+ 
 /// Based on algorithm from "Finding bipartite subgraphs efficiently" by Dhruv Mubayi and Gyorgy Turan
 /// If the number of edges equals 0, then the algorithm returns two empty sets.
 /// The algorithm returns two sets of vertices, which are grouped in two halves of the found complete bipartite graph.
