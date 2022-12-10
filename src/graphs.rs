@@ -33,16 +33,6 @@ pub struct Graph {
     name_to_idx_map: HashMap<String, usize>,
 }
 
-/// For generation purposes
-#[derive(Clone)]
-pub struct GraphVec {
-    num_of_vertices: usize,
-    num_of_edges: usize,
-    neighbours: Vec<Vec<usize>>,
-    idx_to_name_map: Vec<String>,
-}
-
-
 #[derive(Serialize, Deserialize)]
 struct GraphJson {
     num_of_vertices: usize,
@@ -55,7 +45,7 @@ impl Graph {
     /// Returns number of vertices.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// assert_eq!(2, e2.get_num_of_vertices());
     /// ```
@@ -66,7 +56,7 @@ impl Graph {
     /// Returns number of edges.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// e2.add_edge_idx(0, 1);
     /// assert_eq!(1, e2.get_num_of_edges());
@@ -79,7 +69,7 @@ impl Graph {
     /// The return type is Option which is Some if the index exists in the graph and None otherwise.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
     /// assert_eq!(Some("vertex_0".to_string()), e1.idx_to_name(0));
     /// assert_eq!(None, e1.idx_to_name(1));
@@ -92,7 +82,7 @@ impl Graph {
     /// The return type is Option which is Some if the index exists in the graph and None otherwise.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
     /// assert_eq!(Some (0), e1.name_to_idx("vertex_0"));
     /// assert_eq!(None, e1.name_to_idx("vertex_1"));
@@ -104,7 +94,7 @@ impl Graph {
     /// Creates an empty graph. The graph has 0 vertices, empty adjencency list and empty mapping.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let empty = Graph::empty();
     /// assert_eq!(0, empty.get_num_of_vertices());
     /// ```
@@ -123,7 +113,7 @@ impl Graph {
     /// i-th vertex is named "vertex_i".
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let k2 = Graph::random(2, 1.0);
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
@@ -148,7 +138,7 @@ impl Graph {
     /// Each edge has the same probability of being present.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let rand42 = Graph::random_given_edges(42, 42);
     /// assert_eq!(rand42.get_num_of_edges(), 42);
     /// assert_eq!(rand42.get_num_of_vertices(), 42);
@@ -183,7 +173,7 @@ impl Graph {
     /// Creates a complete graph with given number of vertices.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let k2 = Graph::complete(2);
     /// assert!(k2.neighbours_idx(1).unwrap().contains(&0));
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
@@ -212,7 +202,7 @@ impl Graph {
     /// Creates a graph with no edges based on a vector of vertices names.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// assert_eq!(2, e2.get_num_of_vertices());
     /// assert_eq!(0, e2.name_to_idx("vertex_0").unwrap());
@@ -236,7 +226,7 @@ impl Graph {
     /// If the name already exists then it is not added.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k_one = Graph::empty();
     /// k_one.add_vertex("vertex_0");
     /// k_one.add_vertex("vertex_0");
@@ -259,7 +249,7 @@ impl Graph {
     /// Returns true if the vertex was removed.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// use std::collections::HashSet;
     /// let mut k5 = Graph::complete(5);
     /// assert!(k5.remove_vertex("vertex_2"));
@@ -302,7 +292,7 @@ impl Graph {
     /// Returns an iterator on all vertices indices.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// assert_eq!((0..2), e2.vertices());
     /// ```
@@ -313,7 +303,7 @@ impl Graph {
     /// Returns an iterator on all vertices names.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let e1 = Graph::from_names(vec!["vertex_0".to_string()]);
     /// assert!(e1.contains_vertex("vertex_0"));
     /// assert!(!e1.contains_vertex("vertex_1"));
@@ -326,7 +316,7 @@ impl Graph {
     /// Returns boolean value - if the adding was successful.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge_idx(0, 1);
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
@@ -350,7 +340,7 @@ impl Graph {
     /// Returns boolean value - if the adding was successful.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
     /// assert!(k2.neighbours_idx(0).unwrap().contains(&1));
@@ -374,7 +364,7 @@ impl Graph {
     ///
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// use std::collections::HashSet;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
@@ -393,7 +383,7 @@ impl Graph {
 
     /// Returns sorted list of s vertices with highest degree.
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut g4 = Graph::from_names(vec!["v_0".to_string(), "v_1".to_string(), "v_2".to_string(), "v_3".to_string()]); 
     /// g4.add_edge("v_3", "v_0");
     /// g4.add_edge("v_3", "v_1");
@@ -409,7 +399,7 @@ impl Graph {
 
     /// Returns sorted list of s vertices with lowest degree.
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut g4 = Graph::from_names(vec!["v_0".to_string(), "v_1".to_string(), "v_2".to_string(), "v_3".to_string()]); 
     /// g4.add_edge("v_3", "v_0");
     /// g4.add_edge("v_3", "v_1");
@@ -426,7 +416,7 @@ impl Graph {
     /// Writes a graph to a json file with given filename.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
     /// let result = k2.write_to_json("k2.json");
@@ -446,9 +436,10 @@ impl Graph {
     /// Reads a graph from a json file with given filename.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k2 = Graph::from_names(vec!["vertex_0".to_string(), "vertex_1".to_string()]);
     /// k2.add_edge("vertex_0", "vertex_1");
+    /// k2.write_to_json("k2.json").unwrap();
     /// let read = Graph::read_from_json("k2.json");
     /// assert_eq!(2, read.get_num_of_vertices());
     /// assert_eq!(1, read.get_num_of_edges());
@@ -502,7 +493,7 @@ impl Graph {
     /// Checks if a graph is bipartite.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k2 = Graph::complete(2);
     /// let mut k3 = Graph::complete(3);
     /// assert!(k2.is_bipartite());
@@ -535,7 +526,7 @@ impl Graph {
     /// Returns boolean value saying if the reduction was successful.
     /// # Examples
     /// ```
-    /// use bipartite::graphs::Graph;
+    /// use labisu::graphs::Graph;
     /// let mut k256 = Graph::complete(256);
     /// let mut rand1024_with_leaf = Graph::random_given_edges(1024, 262145);
     /// rand1024_with_leaf.add_vertex("leaf");
@@ -561,85 +552,5 @@ impl Graph {
             self.remove_vertex(&name);
         }
         false
-    }
-}
-
-impl GraphVec {
-    pub fn empty() -> GraphVec {
-        GraphVec {
-            num_of_vertices: 0,
-            num_of_edges: 0,
-            neighbours: vec![],
-            idx_to_name_map: vec![]
-        }
-    }
-
-    pub fn add_vertex(&mut self, name: &str) {
-        self.neighbours.push(Vec::new());
-        self.idx_to_name_map.push(String::from(name));
-        self.num_of_vertices += 1;
-    }
-
-    pub fn complete(num_of_vertices: usize) -> GraphVec {
-        let num_of_edges = num_of_vertices * (num_of_vertices - 1) / 2;
-        let neighbours =
-            (0..num_of_vertices)
-            .into_iter()
-            .map(|i|  (0..num_of_vertices).filter(|j| i != *j).collect::<Vec<usize>>())
-            .collect();
-
-        let idx_to_name_map = (0..num_of_vertices).into_iter().map(|i| format!("{}", i)).collect();
-
-        GraphVec {
-            num_of_vertices,
-            num_of_edges,
-            neighbours,
-            idx_to_name_map,
-        }
-    }
-
-    pub fn add_edge_idx(&mut self, from: usize, to: usize) -> bool {
-        self.neighbours[to].push(from);
-        self.neighbours[from].push(to);
-        self.num_of_edges += 1;
-        true
-    }
-
-    pub fn random_given_edges(num_of_vertices: usize, num_of_edges: usize) -> GraphVec {
-        let mut graph = GraphVec::empty();
-        for i in 0..num_of_vertices {
-            graph.add_vertex(&format!("{}", i));
-        }
-
-        let mut edges_list =
-            (0..num_of_vertices)
-            .flat_map(|from| (from + 1..num_of_vertices).map(move |to| (from, to)))
-            .collect::<Vec<(usize, usize)>>();
-
-        let potential_edges_count = edges_list.len();
-
-        let mut rand_thread = rand::thread_rng();
-        
-        for from in 0..num_of_edges - 2 {
-            let to = rand_thread.gen_range(from + 1..potential_edges_count);
-            edges_list.swap(from, to);
-        }
-
-        (0..num_of_edges)
-        .map(|i| edges_list[i])
-        .for_each(|(from, to)| { graph.add_edge_idx(from, to); });
-
-        graph
-    }
-
-    pub fn write_to_json(&self, filename: &str) -> serde_json::Result<()> {
-        let graph = json!({
-            "num_of_vertices": self.num_of_vertices,
-            "num_of_edges": self.num_of_edges,
-            "neighbours": self.neighbours,
-            "names": self.idx_to_name_map
-        }
-        );
-        serde_json::to_writer(&File::create(filename).unwrap(), &graph)
     }
 }

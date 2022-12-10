@@ -66,8 +66,8 @@ impl CountArray {
 /// Calculates the q and r values described in the paper "Finding bipartite subgraphs efficiently" by Dhruv Mubayi and Gyorgy Turan.
 /// # Examples:
 /// ```
-/// use bipartite::bipartite::qr_parameters;
-/// use bipartite::graphs::Graph;
+/// use labisu::bipartite::qr_parameters;
+/// use labisu::graphs::Graph;
 /// let k1500 = Graph::complete(1500);
 /// let (q, r) = qr_parameters(&k1500);
 /// assert_eq!(q, 2);
@@ -90,8 +90,8 @@ pub fn qr_parameters(graph: &Graph) -> (usize, usize) {
 /// The algorithm returns two sets of vertices, which are grouped in two halves of the found complete bipartite graph.
 /// # Examples:
 /// ```
-/// use bipartite::bipartite::find_bipartite;
-/// use bipartite::graphs::Graph;
+/// use labisu::bipartite::find_bipartite;
+/// use labisu::graphs::Graph;
 /// use std::collections::HashSet;
 /// 
 /// let k300 = Graph::complete(300);

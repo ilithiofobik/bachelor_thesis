@@ -19,7 +19,7 @@ impl Scraper {
     /// It also takes a vector of stop words that are not allowed to be contained within the url address of found pages.
     /// # Examples
     /// ```
-    /// use bipartite::scraper::Scraper;
+    /// use labisu::scraper::Scraper;
     /// let scraper = Scraper::new(vec![], vec![]);
     /// ```
     pub fn new(must_contain: Vec<String>, stop_words: Vec<String>) -> Scraper {
@@ -34,7 +34,7 @@ impl Scraper {
     /// If the connection to the url fails, then an empty HashSet is returned.
     /// # Examples
     /// ```
-    /// use bipartite::scraper::Scraper;
+    /// use labisu::scraper::Scraper;
     /// let scraper = Scraper::new(vec![], vec![]);
     /// let links = scraper.scrape("https://pwr.edu.pl/");
     /// assert!(links.len() > 0);

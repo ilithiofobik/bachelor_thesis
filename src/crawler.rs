@@ -19,7 +19,7 @@ pub struct Crawler {
 impl Crawler {
     /// Create a new crawler.
     /// ```
-    /// use bipartite::crawler::Crawler;
+    /// use labisu::crawler::Crawler;
     /// let parser = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, vec![], vec![]);
     /// ```
     pub fn new(root: String, max_depth: usize, must_contain: Vec<String>, stop_words: Vec<String>) -> Crawler {
@@ -34,10 +34,9 @@ impl Crawler {
     /// Crawl the web based on given url and max_depth.
     /// Each url is checked for stop words and must_contain word.
     /// ```
-    /// use bipartite::crawler::Crawler;
+    /// use labisu::crawler::Crawler;
     /// let crawler = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, vec!["pwr.edu".to_owned()], vec![".txt".to_owned()]);
     /// let links = crawler.crawl();
-    /// links.write_to_json("testing3.json").unwrap(); // to be deleted
     /// assert_eq!(links.idx_to_name(0).unwrap(), "https://pwr.edu.pl/");
     /// for idx in links.vertices().skip(1) {
     ///     assert!(links.idx_to_name(idx).unwrap().contains("pwr.edu"));

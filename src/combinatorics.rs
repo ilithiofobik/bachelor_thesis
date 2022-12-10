@@ -1,7 +1,7 @@
 /// Returns the value of n choose k.
 /// # Examples
 /// ```
-/// use bipartite::combinatorics::binomial;
+/// use labisu::combinatorics::binomial;
 /// assert_eq!(1, binomial(10, 0));
 /// assert_eq!(10, binomial(10, 1));
 /// assert_eq!(252, binomial(10, 5));
@@ -56,13 +56,19 @@ impl Iterator for GraySubsets {
     /// and for non-existent ones there are no transitions.
     /// # Examples
     /// ```
-    /// use bipartite::combinatorics::GraySubsets;
-    /// use bipartite::combinatorics::binomial;
+    /// use labisu::combinatorics::GraySubsets;
+    /// use labisu::combinatorics::binomial;
     /// for n in 0..10 {
     ///    for k in 0..n + 2 {
     ///     let mut gray = GraySubsets::new(n, k);
     ///     let mut bin  = std::cmp::max(1, binomial(n, k)) - 1; 
-    ///     assert_eq!(bin, gray.into_iter().count());
+    ///     let mut count = 0;
+    ///     for (ch0, ch1) in gray.into_iter() {
+    ///        count += 1;
+    ///        assert!(ch0 < n);
+    ///        assert!(ch1 < n);
+    ///     }
+    ///     assert_eq!(bin, count);
     ///     }
     /// }
     fn next(&mut self) -> Option<Self::Item> {
