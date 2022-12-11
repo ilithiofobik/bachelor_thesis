@@ -62,12 +62,7 @@ impl Iterator for GraySubsets {
     ///    for k in 0..n + 2 {
     ///     let mut gray = GraySubsets::new(n, k);
     ///     let mut bin  = std::cmp::max(1, binomial(n, k)) - 1; 
-    ///     let mut count = 0;
-    ///     for (ch0, ch1) in gray.into_iter() {
-    ///        count += 1;
-    ///        assert!(ch0 < n);
-    ///        assert!(ch1 < n);
-    ///     }
+    ///     let mut count = gray.into_iter().count();
     ///     assert_eq!(bin, count);
     ///     }
     /// }
