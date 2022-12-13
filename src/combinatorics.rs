@@ -20,15 +20,19 @@ pub fn binomial(n: usize, k: usize) -> usize {
     }
     acc_up / acc_down
 }
+
+/// A struct for generation of Gray codes required to keep 
+/// the data necessary for the algorithm.
 pub struct GraySubsets {
     n: usize,
     t: usize,
     i: usize,
     tau: Vec<usize>,
-    pub g: Vec<usize>,
+    g: Vec<usize>,
 }
 
 impl GraySubsets {
+    /// Creates a new GraySubsets iterator over k-subsets of {0,1,...,n-1}.
     pub fn new(n: usize, k: usize) -> GraySubsets {
         let mut tau: Vec<usize> = (0..n + 2).map(|x| x + 1).collect();
         tau[0] = if k > 0 { k + 1 } else { n + 1 };
@@ -41,6 +45,7 @@ impl GraySubsets {
         }
     }
 
+    /// Returns the initial Gray code.
     pub fn init(&self) -> Vec<usize> {
         (0..self.n).map(|x| (x < self.t) as usize).collect()
     }

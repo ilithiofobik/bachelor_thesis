@@ -14,9 +14,9 @@ pub struct Scraper {
 }
 
 impl Scraper {
-    /// Creates a new Scraper with the given word that must be contained within the url address of found pages.
-    /// If the word is None, then no word is required.
+    /// Creates a new Scraper with the given vector of words that must be contained within the url address of found pages.
     /// It also takes a vector of stop words that are not allowed to be contained within the url address of found pages.
+    /// If both vectors are empty, then all links are allowed.
     /// # Examples
     /// ```
     /// use labisu::scraper::Scraper;

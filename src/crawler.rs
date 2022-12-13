@@ -9,6 +9,7 @@ enum Index {
     NumIndex(usize),
 }
 
+/// A struct containing all information required to crawl.
 pub struct Crawler {
     root: String,
     max_depth: usize,
@@ -17,7 +18,7 @@ pub struct Crawler {
 }
 
 impl Crawler {
-    /// Create a new crawler.
+    /// Creates a new crawler.
     /// ```
     /// use labisu::crawler::Crawler;
     /// let parser = Crawler::new("https://pwr.edu.pl/".to_owned(), 1, vec![], vec![]);
@@ -31,7 +32,7 @@ impl Crawler {
         }
     }
 
-    /// Crawl the web based on given url and max_depth.
+    /// Crawls the web based on given url and max_depth.
     /// Each url is checked for stop words and must_contain word.
     /// ```
     /// use labisu::crawler::Crawler;

@@ -24,6 +24,7 @@ impl Color {
     }
 }
 
+/// A structure representing an undirected graph, where vertices are named by strings.
 #[derive(Clone)]
 pub struct Graph {
     num_of_vertices: usize,
@@ -33,6 +34,8 @@ pub struct Graph {
     name_to_idx_map: HashMap<String, usize>,
 }
 
+/// A structure representing a graph that can be easily
+/// tranformed into a json file.
 #[derive(Serialize, Deserialize)]
 struct GraphJson {
     num_of_vertices: usize,
@@ -91,7 +94,7 @@ impl Graph {
         self.name_to_idx_map.get(name).cloned()
     }
 
-    /// Creates an empty graph. The graph has 0 vertices, empty adjencency list and empty mapping.
+    /// Creates an empty graph. The graph has 0 vertices, empty adjacency list and empty mapping.
     /// # Examples
     /// ```
     /// use labisu::graphs::Graph;
@@ -522,7 +525,7 @@ impl Graph {
         true
     }
 
-    /// Removes vertices untill the graph satisfies |E| ^ 2 > 64 * |V| ^ 3
+    /// Removes vertices until the graph satisfies |E| ^ 2 > 64 * |V| ^ 3
     /// Returns boolean value saying if the reduction was successful.
     /// # Examples
     /// ```
